@@ -26,10 +26,10 @@ enum pieceID = { EMPTY, W_P, W_N, W_B, W_R, W_Q, W_K,
 				B_P, B_N, B_B, B_R, B_Q, B_K, INVALID };
 
 // allow for incrementing on piece ID
-inline pieceID operator++ (pieceID& pi) { return (pieceID)(sq + 1); }
-inline pieceID operator++ (pieceID& pi, int)
+inline pieceID operator++ (pieceID& pic { return (pieceID)(pic + 1); }
+inline pieceID operator++ (pieceID& pic, int)
 {
-	pieceID old = sq; sq = (pieceID)(sq + 1); return old
+	pieceID old = pic; pic = (pieceID)(pic + 1); return old
 }
 
 // colors
