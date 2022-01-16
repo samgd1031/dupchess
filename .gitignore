@@ -20,6 +20,8 @@
 *.mod
 *.smod
 
+# visual studio shit
+**/.vs
 # Compiled Static libraries
 *.lai
 *.la
