@@ -67,11 +67,12 @@ void printbitboard(bitboard bb) {
 	printf("\n  ABCDEFGH\n\n");
 }
 
-void setBoardFromFEN(BOARD_S bb, std::string FENstring) {
-	// first, split up FEN string at spaces
+void setBoardFromFEN(BOARD_S &bb, std::string FENstring) {
+	
 	std::string tmp = "";
 	std::vector<std::string> splitstr;
 
+	// first, split up FEN string at spaces
 	for (int ii = 0; ii < FENstring.length(); ii++) {
 		if (FENstring[ii] == ' '){
 			splitstr.push_back(tmp);
@@ -80,10 +81,6 @@ void setBoardFromFEN(BOARD_S bb, std::string FENstring) {
 		else {
 			tmp.push_back(FENstring[ii]);
 		}
-	}
-
-	for (int ii = 0; ii < splitstr.size(); ii++) {
-		std::cout << splitstr[ii] << std::endl;
 	}
 
 	// set piece locations from first part of FEN
@@ -127,20 +124,16 @@ void setBoardFromFEN(BOARD_S bb, std::string FENstring) {
 		}
 		else if (isdigit(c_char)) // if digit, increment number of empty squares
 		{
-			piece_index -= c_char - '0';
+			piece_index -= (uint64_t)(c_char - '0');
 		}
 	}
 
-	// set active color
+	// set active color from second part of FEN
 	if (splitstr[1] == "w")
 		bb.whiteToMove = true;
 	else
 		bb.whiteToMove = false;
 
-
-	printbitboard(bb.rooks);
-	printbitboard(bb.pawns);
-	std::cout << bb.whiteToMove << std::endl;
 }
 
 

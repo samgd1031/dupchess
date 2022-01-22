@@ -17,6 +17,12 @@ int main()
 	printf("\nAll Pieces");
 	printbitboard(bb.white_pcs | bb.black_pcs);
 
+	printf("\nWhite Rooks");
+	printbitboard(bb.white_pcs & bb.rooks);
+
+	printf("\nBishops");
+	printbitboard(bb.bishops);
+
 	return 0;
 }
 
