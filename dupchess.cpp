@@ -9,9 +9,7 @@ int main()
 	std::string FEN;
 	BOARD_S bb = BOARD_S();
 
-
-
-	FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	FEN = "K2b2q1/8/2Q5/6pk/P7/7Q/8/8 b - - 2 67";
 	setBoardFromFEN(bb, FEN);
 
 	printf("\nAll Pieces");
