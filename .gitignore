@@ -28,6 +28,9 @@
 *.a
 *.lib
 
+#compile output folder
+out/**
+
 # Executables
 *.exe
 *.out
