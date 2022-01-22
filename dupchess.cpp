@@ -6,20 +6,17 @@ using namespace std;
 
 int main()
 {
-	BOARD_S test_board;
-	test_board.white_pcs = 0x000000000000FFFF;
-
-	printf("White Pieces");
-	printbitboard(test_board.white_pcs);
-
-	test_board.black_pcs = 0xFFFF000000000000;
-
-	printf("\n\n\nBlack Pieces");
-	printbitboard(test_board.black_pcs);
+	std::string FEN;
+	BOARD_S bb = BOARD_S();
 
 
-	printf("\n\n\nAll Pieces");
-	printbitboard(test_board.white_pcs | test_board.black_pcs);
+
+	FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	setBoardFromFEN(bb, FEN);
+
+	printf("\nAll Pieces");
+	printbitboard(bb.white_pcs | bb.black_pcs);
+
 	return 0;
 }
 

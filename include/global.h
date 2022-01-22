@@ -2,13 +2,15 @@
 #define GL_H
 
 #include <cstdint>
+#include <string>
+#include <vector>
+#include <ctype.h>
+
 typedef uint64_t bitboard;
 
 #define NAME "DupChess"
 
-enum pieces	{EM, wP, wR, wN, wB, wQ, wK, bP, bR, bN, bB, bQ, bK, };
-enum colors	{WHITE, BLACK, NONE};
-enum squares {
+enum class squares {
 	A1, B1, C1, D1, E1, F1, G1, H1,
 	A2, B2, C2, D2, E2, F2, G2, H2,
 	A3, B3, C3, D3, E3, F3, G3, H3,
@@ -19,21 +21,28 @@ enum squares {
 	A8, B8, C8, D8, E8, F8, G8, H8, EMPTY_SQ
 };
 
-typedef struct {
+typedef struct BOARD_S {
 	// piece type of a color can be found by unioning white/black_pcs with
 	// a piece type bitboard
-	bitboard white_pcs;		// all white pieces
-	bitboard black_pcs;		// all black pieces
-	bitboard pawns;			// all pawns
-	bitboard rooks;			// all rooks
-	bitboard knights;		// all knights
-	bitboard bishops;		// all bishops
-	bitboard queens;		// all queens
-	bitboard kings;			// all kings
+	bitboard white_pcs = 0x0000000000000000;		// all white pieces
+	bitboard black_pcs = 0x0000000000000000;		// all black pieces
+	bitboard pawns = 0x0000000000000000;			// all pawns
+	bitboard rooks = 0x0000000000000000;			// all rooks
+	bitboard knights = 0x0000000000000000;			// all knights
+	bitboard bishops = 0x0000000000000000;			// all bishops
+	bitboard queens = 0x0000000000000000;			// all queens
+	bitboard kings = 0x0000000000000000;			// all kings
 
-} BOARD_S;
+	// other game state info
+	squares PIPI = squares::EMPTY_SQ; // en passant
+	bool whiteToMove = true;  // who gets to move
+	bool canCastle[2] = {true, true};  // ind0: true if white can castle, ind1: true if black can castle
 
-#endif // !GL_H
+	int halfmove = 0;  // half move clock
+	int fullmove = 0;  // full move counter
+
+};
+
 
 
 // function to print a bitboard to console for debugging
@@ -55,5 +64,84 @@ void printbitboard(bitboard bb) {
 		count--;
 
 	}
-	printf("\n  ABCDEFGH");
+	printf("\n  ABCDEFGH\n\n");
 }
+
+void setBoardFromFEN(BOARD_S bb, std::string FENstring) {
+	// first, split up FEN string at spaces
+	std::string tmp = "";
+	std::vector<std::string> splitstr;
+
+	for (int ii = 0; ii < FENstring.length(); ii++) {
+		if (FENstring[ii] == ' '){
+			splitstr.push_back(tmp);
+			tmp = "";
+		}
+		else {
+			tmp.push_back(FENstring[ii]);
+		}
+	}
+
+	for (int ii = 0; ii < splitstr.size(); ii++) {
+		std::cout << splitstr[ii] << std::endl;
+	}
+
+	// set piece locations from first part of FEN
+	uint64_t piece_index = 63;
+	for (int ii = 0; ii < splitstr[0].length(); ii++) {
+		char c_char = splitstr[0][ii];
+		if (isalpha(c_char)) // piece
+		{
+			if (isupper(c_char)) // white piece
+			{
+				bb.white_pcs = (1ULL << piece_index) | bb.white_pcs;
+			}
+			else // black piece
+			{
+				bb.black_pcs = (1ULL << piece_index) | bb.black_pcs;
+			}
+
+			// piece type
+			switch (tolower(c_char)) {
+			case 'r':
+				bb.rooks = (1ULL << piece_index) | bb.rooks;
+				break;
+			case 'n':
+				bb.knights = (1ULL << piece_index) | bb.knights;
+				break;
+			case 'b':
+				bb.bishops = (1ULL << piece_index) | bb.bishops;
+				break;
+			case 'q':
+				bb.queens = (1ULL << piece_index) | bb.queens;
+				break;
+			case 'k':
+				bb.kings = (1ULL << piece_index) | bb.kings;
+				break;
+			case 'p':
+				bb.pawns = (1ULL << piece_index) | bb.pawns;
+				break;
+			}
+
+			piece_index--;
+		}
+		else if (isdigit(c_char)) // if digit, increment number of empty squares
+		{
+			piece_index -= c_char - '0';
+		}
+	}
+
+	// set active color
+	if (splitstr[1] == "w")
+		bb.whiteToMove = true;
+	else
+		bb.whiteToMove = false;
+
+
+	printbitboard(bb.rooks);
+	printbitboard(bb.pawns);
+	std::cout << bb.whiteToMove << std::endl;
+}
+
+
+#endif // !GL_H
