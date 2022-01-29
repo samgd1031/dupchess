@@ -21,6 +21,8 @@ int main()
 	printf("\nBishops");
 	printbitboard(bb.bishops);
 
+	cout << "Castling Rights (KQkq): " << bb.castleRights << endl;
+
 	return 0;
 }
 

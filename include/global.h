@@ -38,7 +38,7 @@ typedef struct BOARD_S {
 	// other game state info
 	squares PIPI = squares::EMPTY_SQ; // en passant
 	bool whiteToMove = true;  // who gets to move
-	bool canCastle[2] = {true, true};  // ind0: true if white can castle, ind1: true if black can castle
+	std::bitset<4> castleRights{0xF};  // last 4 bits of uint8, from high to low: white kingside, white queenside, blk kingside, blk queenside
 
 	int halfmove = 0;  // half move clock
 	int fullmove = 0;  // full move counter
@@ -135,6 +135,31 @@ void setBoardFromFEN(BOARD_S &bb, std::string FENstring) {
 		bb.whiteToMove = true;
 	else
 		bb.whiteToMove = false;
+
+	// castling rights from third part of FEN
+	bb.castleRights = 0x0;
+	if (splitstr[2] != "-")  // need to set one or more bits
+	{
+		for (auto& ch : splitstr[2])
+		{
+			switch (ch)
+			{
+			case 'K':
+				bb.castleRights = bb.castleRights | std::bitset<4>(0x8);
+				break;
+			case 'Q':
+				bb.castleRights = bb.castleRights | std::bitset<4>(0x4);
+				break;
+			case 'k':
+				bb.castleRights = bb.castleRights | std::bitset<4>(0x2);
+				break;
+			case 'q':
+				bb.castleRights = bb.castleRights | std::bitset<4>(0x1);
+				break;
+			}
+		}
+		std::cout << std::endl;
+	}
 
 }
 
