@@ -22,6 +22,7 @@ int main()
 	printbitboard(bb.bishops);
 
 	cout << "Castling Rights (KQkq): " << bb.castleRights << endl;
+	cout << "En Passant Target: " << squareStrings[int(bb.PIPI)] << endl;
 
 	return 0;
 }
