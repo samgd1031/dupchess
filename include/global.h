@@ -56,7 +56,7 @@ squares stringToSquare(std::string squareString)
 	}
 }
 
-typedef struct BOARD_S {
+struct BOARD_S {
 	// piece type of a color can be found by unioning white/black_pcs with
 	// a piece type bitboard
 	bitboard white_pcs = 0x0000000000000000;		// all white pieces
@@ -159,7 +159,7 @@ void setBoardFromFEN(BOARD_S &bb, std::string FENstring) {
 		}
 		else if (isdigit(c_char)) // if digit, increment number of empty squares
 		{
-			piece_index -= (uint64_t)(c_char - '0');
+			piece_index -= (uint64_t)((uint8_t)c_char - '0');
 		}
 	}
 
