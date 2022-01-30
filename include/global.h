@@ -71,9 +71,9 @@ struct BOARD_S {
 	// other game state info
 	squares PIPI = squares::EMPTY_SQ; // en passant
 	bool whiteToMove = true;  // who gets to move
-	std::bitset<4> castleRights{0xF};  // last 4 bits of uint8, from high to low: white kingside, white queenside, blk kingside, blk queenside
+	std::bitset<4> castleRights{0xF};  // 4 bits from high to low: white kingside, white queenside, blk kingside, blk queenside
 
-	int halfmove = 0;  // half move clock
+	int halfmove = 0;  // half move counter
 	int fullmove = 0;  // full move counter
 
 };
