@@ -9,7 +9,7 @@ int main()
 	std::string FEN;
 	BOARD_S bb = BOARD_S();
 
-	FEN = "K2b2q1/8/2Q5/6pk/P7/7Q/8/8 b - b5 2 67";
+	FEN = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2 ";
 	setBoardFromFEN(bb, FEN);
 
 	printf("\nAll Pieces");
@@ -23,6 +23,8 @@ int main()
 
 	cout << "Castling Rights (KQkq): " << bb.castleRights << endl;
 	cout << "En Passant Target: " << squareStrings[int(bb.PIPI)] << endl;
+	cout << "Half Move Counter: " << bb.halfmove << endl;
+	cout << "Full Move Counter: " << bb.fullmove << endl;
 
 	return 0;
 }

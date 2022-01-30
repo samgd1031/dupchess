@@ -117,6 +117,7 @@ void setBoardFromFEN(BOARD_S &bb, std::string FENstring) {
 			tmp.push_back(FENstring[ii]);
 		}
 	}
+	splitstr.push_back(tmp);  // add last part of FEN string to splitstr
 
 	// set piece locations from first part of FEN
 	uint64_t piece_index = 63;
@@ -159,7 +160,7 @@ void setBoardFromFEN(BOARD_S &bb, std::string FENstring) {
 		}
 		else if (isdigit(c_char)) // if digit, increment number of empty squares
 		{
-			piece_index -= (uint64_t)((uint8_t)c_char - '0');
+			piece_index -= (uint64_t)(c_char - '0');
 		}
 	}
 
@@ -200,6 +201,10 @@ void setBoardFromFEN(BOARD_S &bb, std::string FENstring) {
 	{
 		bb.PIPI = stringToSquare(splitstr[3]);
 	}
+
+	// half move/full move counters
+	bb.halfmove = stoi(splitstr[4]);
+	bb.fullmove = stoi(splitstr[5]);
 
 }
 
