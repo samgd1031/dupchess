@@ -1,5 +1,4 @@
-#ifndef GL_H
-#define GL_H
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -56,29 +55,6 @@ squares stringToSquare(std::string squareString)
 	}
 }
 
-struct BOARD_S {
-	// piece type of a color can be found by unioning white/black_pcs with
-	// a piece type bitboard
-	bitboard white_pcs = 0x0000000000000000;		// all white pieces
-	bitboard black_pcs = 0x0000000000000000;		// all black pieces
-	bitboard pawns = 0x0000000000000000;			// all pawns
-	bitboard rooks = 0x0000000000000000;			// all rooks
-	bitboard knights = 0x0000000000000000;			// all knights
-	bitboard bishops = 0x0000000000000000;			// all bishops
-	bitboard queens = 0x0000000000000000;			// all queens
-	bitboard kings = 0x0000000000000000;			// all kings
-
-	// other game state info
-	squares PIPI = squares::EMPTY_SQ; // en passant
-	bool whiteToMove = true;  // who gets to move
-	std::bitset<4> castleRights{0xF};  // 4 bits from high to low: white kingside, white queenside, blk kingside, blk queenside
-
-	int halfmove = 0;  // half move counter
-	int fullmove = 0;  // full move counter
-
-};
-
-
 
 // function to print a bitboard to console for debugging
 void printbitboard(bitboard bb) {
@@ -102,111 +78,3 @@ void printbitboard(bitboard bb) {
 	printf("\n  ABCDEFGH\n\n");
 }
 
-void setBoardFromFEN(BOARD_S &bb, std::string FENstring) {
-	
-	std::string tmp = "";
-	std::vector<std::string> splitstr;
-
-	// first, split up FEN string at spaces
-	for (int ii = 0; ii < FENstring.length(); ii++) {
-		if (FENstring[ii] == ' '){
-			splitstr.push_back(tmp);
-			tmp = "";
-		}
-		else {
-			tmp.push_back(FENstring[ii]);
-		}
-	}
-	splitstr.push_back(tmp);  // add last part of FEN string to splitstr
-
-	// set piece locations from first part of FEN
-	uint64_t piece_index = 63;
-	for (int ii = 0; ii < splitstr[0].length(); ii++) {
-		char c_char = splitstr[0][ii];
-		if (isalpha(c_char)) // piece
-		{
-			if (isupper(c_char)) // white piece
-			{
-				bb.white_pcs = (1ULL << piece_index) | bb.white_pcs;
-			}
-			else // black piece
-			{
-				bb.black_pcs = (1ULL << piece_index) | bb.black_pcs;
-			}
-
-			// piece type
-			switch (tolower(c_char)) {
-			case 'r':
-				bb.rooks = (1ULL << piece_index) | bb.rooks;
-				break;
-			case 'n':
-				bb.knights = (1ULL << piece_index) | bb.knights;
-				break;
-			case 'b':
-				bb.bishops = (1ULL << piece_index) | bb.bishops;
-				break;
-			case 'q':
-				bb.queens = (1ULL << piece_index) | bb.queens;
-				break;
-			case 'k':
-				bb.kings = (1ULL << piece_index) | bb.kings;
-				break;
-			case 'p':
-				bb.pawns = (1ULL << piece_index) | bb.pawns;
-				break;
-			}
-
-			piece_index--;
-		}
-		else if (isdigit(c_char)) // if digit, increment number of empty squares
-		{
-			piece_index -= (uint64_t)(c_char - '0');
-		}
-	}
-
-	// set active color from second part of FEN
-	if (splitstr[1] == "w")
-		bb.whiteToMove = true;
-	else
-		bb.whiteToMove = false;
-
-	// castling rights from third part of FEN
-	bb.castleRights = 0x0;
-	if (splitstr[2] != "-")  // need to set one or more bits
-	{
-		for (auto& ch : splitstr[2])
-		{
-			switch (ch)
-			{
-			case 'K':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x8);
-				break;
-			case 'Q':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x4);
-				break;
-			case 'k':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x2);
-				break;
-			case 'q':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x1);
-				break;
-			}
-		}
-	}
-
-	// en passant target square from fourth part of FEN
-	if (splitstr[3] == "=")
-		bb.PIPI = squares::EMPTY_SQ;
-	else
-	{
-		bb.PIPI = stringToSquare(splitstr[3]);
-	}
-
-	// half move/full move counters
-	bb.halfmove = stoi(splitstr[4]);
-	bb.fullmove = stoi(splitstr[5]);
-
-}
-
-
-#endif // !GL_H

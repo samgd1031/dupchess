@@ -1,1 +1,1 @@
-add_library("adder" "adder.cpp")
+add_library("board" "board.cpp")
