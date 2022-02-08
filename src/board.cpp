@@ -1,11 +1,10 @@
 
 #include "board.h"
-#include <vector>
-#include <string>
+
 
 // sets board state from FEN string
 // currently does minimal error checking, assumes it will be given a valid FEN
-void board::setBoardFromFEN(board::BOARD_S& bb, std::string FENstring) {
+void Board::setBoardFromFEN(std::string FENstring) {
 
 	std::string tmp = "";
 	std::vector<std::string> splitstr;
@@ -23,7 +22,7 @@ void board::setBoardFromFEN(board::BOARD_S& bb, std::string FENstring) {
 	splitstr.push_back(tmp);  // add last part of FEN string to splitstr
 
 	// set piece locations from first part of FEN
-	board::clearBoard(bb);
+	(*this).clearBoard();
 	//
 
 	uint64_t piece_index = 63;
@@ -33,32 +32,32 @@ void board::setBoardFromFEN(board::BOARD_S& bb, std::string FENstring) {
 		{
 			if (isupper(c_char)) // white piece
 			{
-				bb.white_pcs = (1ULL << piece_index) | bb.white_pcs;
+				(*this).current_state.white_pcs = (1ULL << piece_index) | (*this).current_state.white_pcs;
 			}
 			else // black piece
 			{
-				bb.black_pcs = (1ULL << piece_index) | bb.black_pcs;
+				(*this).current_state.black_pcs = (1ULL << piece_index) | (*this).current_state.black_pcs;
 			}
 
 			// piece type
 			switch (tolower(c_char)) {
 			case 'r':
-				bb.rooks = (1ULL << piece_index) | bb.rooks;
+				(*this).current_state.rooks = (1ULL << piece_index) | (*this).current_state.rooks;
 				break;
 			case 'n':
-				bb.knights = (1ULL << piece_index) | bb.knights;
+				(*this).current_state.knights = (1ULL << piece_index) | (*this).current_state.knights;
 				break;
 			case 'b':
-				bb.bishops = (1ULL << piece_index) | bb.bishops;
+				(*this).current_state.bishops = (1ULL << piece_index) | (*this).current_state.bishops;
 				break;
 			case 'q':
-				bb.queens = (1ULL << piece_index) | bb.queens;
+				(*this).current_state.queens = (1ULL << piece_index) | (*this).current_state.queens;
 				break;
 			case 'k':
-				bb.kings = (1ULL << piece_index) | bb.kings;
+				(*this).current_state.kings = (1ULL << piece_index) | (*this).current_state.kings;
 				break;
 			case 'p':
-				bb.pawns = (1ULL << piece_index) | bb.pawns;
+				(*this).current_state.pawns = (1ULL << piece_index) | (*this).current_state.pawns;
 				break;
 			}
 
@@ -72,12 +71,12 @@ void board::setBoardFromFEN(board::BOARD_S& bb, std::string FENstring) {
 
 	// set active color from second part of FEN
 	if (splitstr[1] == "w")
-		bb.whiteToMove = true;
+		(*this).current_state.whiteToMove = true;
 	else
-		bb.whiteToMove = false;
+		(*this).current_state.whiteToMove = false;
 
 	// castling rights from third part of FEN
-	bb.castleRights = 0x0;
+	(*this).current_state.castleRights = 0x0;
 	if (splitstr[2] != "-")  // need to set one or more bits
 	{
 		for (auto& ch : splitstr[2])
@@ -85,16 +84,16 @@ void board::setBoardFromFEN(board::BOARD_S& bb, std::string FENstring) {
 			switch (ch)
 			{
 			case 'K':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x8);
+				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x8);
 				break;
 			case 'Q':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x4);
+				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x4);
 				break;
 			case 'k':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x2);
+				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x2);
 				break;
 			case 'q':
-				bb.castleRights = bb.castleRights | std::bitset<4>(0x1);
+				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x1);
 				break;
 			}
 		}
@@ -102,26 +101,26 @@ void board::setBoardFromFEN(board::BOARD_S& bb, std::string FENstring) {
 
 	// en passant target square from fourth part of FEN
 	if (splitstr[3] == "=")
-		bb.PIPI = squares::EMPTY_SQ;
+		(*this).current_state.PIPI = squares::EMPTY_SQ;
 	else
 	{
-		bb.PIPI = stringToSquare(splitstr[3]);
+		(*this).current_state.PIPI = stringToSquare(splitstr[3]);
 	}
 
 	// half move/full move counters
-	bb.halfmove = stoi(splitstr[4]);
-	bb.fullmove = stoi(splitstr[5]);
+	(*this).current_state.halfmove = stoi(splitstr[4]);
+	(*this).current_state.fullmove = stoi(splitstr[5]);
 
 }
 
 // clear all bitboards (used prior to piece assignment from FEN)
-static void board::clearBoard(board::BOARD_S& bb) {
-	bb.white_pcs = 0x0000000000000000;		// all white pieces
-	bb.black_pcs = 0x0000000000000000;		// all black pieces
-	bb.pawns = 0x0000000000000000;			// all pawns
-	bb.rooks = 0x0000000000000000;			// all rooks
-	bb.knights = 0x0000000000000000;		// all knights
-	bb.bishops = 0x0000000000000000;		// all bishops
-	bb.queens = 0x0000000000000000; 		// all queens
-	bb.kings = 0x0000000000000000;			// all kings
-}
+void Board::clearBoard() {
+	(*this).current_state.white_pcs = 0x0000000000000000;		// all white pieces
+	(*this).current_state.black_pcs = 0x0000000000000000;		// all black pieces
+	(*this).current_state.pawns = 0x0000000000000000;			// all pawns
+	(*this).current_state.rooks = 0x0000000000000000;			// all rooks
+	(*this).current_state.knights = 0x0000000000000000;		// all knights
+	(*this).current_state.bishops = 0x0000000000000000;		// all bishops
+	(*this).current_state.queens = 0x0000000000000000; 		// all queens
+	(*this).current_state.kings = 0x0000000000000000;			// all kings
+	}

@@ -8,26 +8,26 @@
 int main()
 {
 	std::string FEN;
-	board::BOARD_S bb = board::BOARD_S();
+	Board gameboard = Board();
 
 
-	FEN = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2 ";
-	board::setBoardFromFEN(bb, FEN);
+	FEN = "rn2k3/pp3p1p/5b2/3p1b1p/2P5/1P6/PB1P4/2K2q2 w q - 6 28";
+	gameboard.setBoardFromFEN(FEN);
 
 	printf("\nAll Pieces");
-	printbitboard(bb.white_pcs | bb.black_pcs);
+	printbitboard(gameboard.current_state.white_pcs | gameboard.current_state.black_pcs);
 
 	printf("\nWhite Rooks");
-	printbitboard(bb.white_pcs & bb.rooks);
+	printbitboard(gameboard.current_state.white_pcs & gameboard.current_state.rooks);
 
 	printf("\nBishops");
-	printbitboard(bb.bishops);
+	printbitboard(gameboard.current_state.bishops);
 
-	std::cout << "Castling Rights (KQkq): " << bb.castleRights << std::endl;
-	std::cout << "En Passant Target: " << squareStrings[int(bb.PIPI)] << std::endl;
-	std::cout << "To Move: " << ((bb.whiteToMove) ? "White" : "Black") << std::endl;
-	std::cout << "Half Move Counter: " << bb.halfmove << std::endl;
-	std::cout << "Full Move Counter: " << bb.fullmove << std::endl;
+	std::cout << "Castling Rights (KQkq): " << gameboard.current_state.castleRights << std::endl;
+	std::cout << "En Passant Target: " << squareStrings[int(gameboard.current_state.PIPI)] << std::endl;
+	std::cout << "To Move: " << ((gameboard.current_state.whiteToMove) ? "White" : "Black") << std::endl;
+	std::cout << "Half Move Counter: " << gameboard.current_state.halfmove << std::endl;
+	std::cout << "Full Move Counter: " << gameboard.current_state.fullmove << std::endl;
 
 	return 0;
 }
