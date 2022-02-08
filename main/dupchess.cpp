@@ -1,8 +1,8 @@
-#pragma once
+
 #include <iostream>
 #include <bitset>
 
-#include "include/board.cpp"
+#include "board.h"
 
 
 int main()

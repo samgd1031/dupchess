@@ -29,6 +29,6 @@ namespace board {
 	};
 
 	// sets board state from FEN string
-	inline void setBoardFromFEN(BOARD_S& bb, std::string FENstring);
-	static void clearBoard(board::BOARD_S& bb);
+	void setBoardFromFEN(BOARD_S& bb, std::string FENstring);
+	void clearBoard(board::BOARD_S& bb);
 }
