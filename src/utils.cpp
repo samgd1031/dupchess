@@ -1,6 +1,6 @@
 
 #include <bitset>
-#include "global.h"
+#include "utils.h"
 
 // helper function to convert a string with a square name to the squares enum
 squares stringToSquare(std::string squareString)

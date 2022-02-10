@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "global.h"
+#include "utils.h"
 
 
 class Board {
