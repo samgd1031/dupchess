@@ -3,15 +3,28 @@
 #include <bitset>
 #include <string>
 
-#include "board.h"
+#include "dupEngine.h"
 
 
 int main()
 {
 	std::string cmd_string;
-	Board gameboard = Board();
+	DupEngine engine = DupEngine();
 
-	std::cout << "Waiting for input..." << std::endl;
+	std::cout << "    ____              ________                   " << std::endl;
+	std::cout << "   / __ \\__  ______  / ____/ /_  ___  __________ " << std::endl;
+	std::cout << "  / / / / / / / __ \\/ /   / __ \\/ _ \\/ ___/ ___/ " << std::endl;
+	std::cout << " / /_/ / /_/ / /_/ / /___/ / / /  __(__  |__  )  " << std::endl;
+	std::cout << "/_____/\\____/ ____/\\____/_/ /_/\\___/____/____/   " << std::endl;
+	std::cout << "           /_/                                     " << std::endl;
+
+
+	std::cout << "    " << engine.getEngineName() << " v." << engine.getEngineVersion() << std::endl;
+	std::cout << "    " << engine.getAuthorName() << std::endl;
+	std::cout << "    " << engine.getEmailAddress() << std::endl;
+	std::cout << "    " << engine.getCountryName() << std::endl;
+
+	std::cout << "\nWaiting for input... (exit to end)" << std::endl;
 	while (std::getline(std::cin, cmd_string)) {
 		// exit if command string is "exit"
 		if (_stricmp(cmd_string.c_str(), "exit") == 0) {
@@ -20,7 +33,7 @@ int main()
 		}
 		else {
 			std::cout << "cmd: " << cmd_string << std::endl;
-			std::cout << "Waiting for input..." << std::endl;
+			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 	}
 
