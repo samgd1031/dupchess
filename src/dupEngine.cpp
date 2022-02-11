@@ -30,3 +30,12 @@ std::string DupEngine::getCountryName() {
 
 // FEN string to set default/starting game position
 static const std::string START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+// Game Status Functions //////////////////
+bool DupEngine::whiteToMove() {
+	return (*this).gameboard.current_state.whiteToMove;
+}
+///////////////////////////////////////////
+
+
+// Move Generation

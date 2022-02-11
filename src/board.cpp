@@ -115,12 +115,12 @@ void Board::setBoardFromFEN(std::string FENstring) {
 
 // clear all bitboards (used prior to piece assignment from FEN)
 void Board::clearBoard() {
-	(*this).current_state.white_pcs = 0x0000000000000000;		// all white pieces
-	(*this).current_state.black_pcs = 0x0000000000000000;		// all black pieces
-	(*this).current_state.pawns = 0x0000000000000000;			// all pawns
-	(*this).current_state.rooks = 0x0000000000000000;			// all rooks
-	(*this).current_state.knights = 0x0000000000000000;		// all knights
-	(*this).current_state.bishops = 0x0000000000000000;		// all bishops
-	(*this).current_state.queens = 0x0000000000000000; 		// all queens
-	(*this).current_state.kings = 0x0000000000000000;			// all kings
+	(*this).current_state.white_pcs = 0ULL;		// all white pieces
+	(*this).current_state.black_pcs = 0ULL;		// all black pieces
+	(*this).current_state.pawns = 0ULL;			// all pawns
+	(*this).current_state.rooks = 0ULL;			// all rooks
+	(*this).current_state.knights = 0ULL;		// all knights
+	(*this).current_state.bishops = 0ULL;		// all bishops
+	(*this).current_state.queens = 0ULL; 		// all queens
+	(*this).current_state.kings = 0ULL;			// all kings
 	}

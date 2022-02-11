@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils.h"
+#include "board.h"
 
 // class for the DupChess Engine
 // main class to handle UCI commands as well as manage the thinking about chess part
@@ -16,6 +17,16 @@ public:
 	std::string getAuthorName();
 	std::string getEmailAddress();
 	std::string getCountryName();
+
+	// game state functions
+	bool whiteToMove();
+
+private:
+	//board representation
+	Board gameboard;
+
+	// move generation
+	std::vector<std::string> getLegalMoves();
 
 	
 };
