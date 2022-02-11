@@ -36,15 +36,15 @@ static const char* squareStrings[65]{
 struct BOARD_STATE {
 	// piece type of a color can be found by ANDing white/black_pcs with
 	// a piece type bitboard
-	// values below represent a new board/no moves made
-	bitboard white_pcs = 0x000000000000FFFF;		// all white pieces
-	bitboard black_pcs = 0xFFFF000000000000;		// all black pieces
-	bitboard pawns = 0x00FF00000000FF00;			// all pawns
-	bitboard rooks = 0x8100000000000081;			// all rooks
-	bitboard knights = 0x4200000000000042;			// all knights
-	bitboard bishops = 0x2400000000000024;			// all bishops
-	bitboard queens = 0x1000000000000010; 			// all queens
-	bitboard kings = 0x0800000000000008;			// all kings
+	// values below represent a blank board
+	bitboard white_pcs = 0ULL;		// all white pieces
+	bitboard black_pcs = 0ULL;		// all black pieces
+	bitboard pawns = 0ULL;			// all pawns
+	bitboard rooks = 0ULL;			// all rooks
+	bitboard knights = 0ULL;		// all knights
+	bitboard bishops = 0ULL;		// all bishops
+	bitboard queens = 0ULL; 		// all queens
+	bitboard kings = 0ULL;			// all kings
 
 	// other game state info
 	squares PIPI = squares::EMPTY_SQ;	// en passant
@@ -62,3 +62,5 @@ squares stringToSquare(std::string squareString);
 // function to print a bitboard to console for debugging
 void printbitboard(bitboard bb);
 
+// function to flip a bitboard
+bitboard flipBitboard(bitboard bb);

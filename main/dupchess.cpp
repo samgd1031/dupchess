@@ -31,6 +31,11 @@ int main()
 			std::cout << "Exiting..." << std::endl;
 			break;
 		}
+		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
+			std::cout << "testing a thing" << std::endl;
+
+			std::cout << "Waiting for input... (exit to end)" << std::endl;
+		}
 		else {
 			std::cout << "cmd: " << cmd_string << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;

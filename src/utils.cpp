@@ -45,3 +45,14 @@ void printbitboard(bitboard bb) {
 	}
 	printf("\n  ABCDEFGH\n\n");
 }
+
+// function to flip a bitboard (XOR by 63)
+bitboard flipBitboard(bitboard bb) {
+	uint64_t flipped = 0ULL;
+	unsigned int s = sizeof(bb) * CHAR_BIT; // bit size; must be power of 2 
+	for (int ii = s-1; ii >= 0; ii--) {
+		flipped |= (bb & 1ULL) << ii;
+		bb >>= 1ULL;
+	}
+	return flipped;
+}
