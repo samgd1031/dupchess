@@ -1,0 +1,28 @@
+#pragma once
+
+#include "utils.h"
+
+// This header is for a class that encodes a single piece move
+class Move {
+public:
+	// constructor
+	Move(uint32_t data);
+
+	// return PGN notation string for move
+	std::string getPGN();
+
+private:
+	uint32_t bits; // encoded move
+
+	// bit shifts
+	// bits 0-5 = index of current piece square (0 to 63), no shift
+	int toShift = 6;		// bits 6-11 = index of square to move to (0 to 63)
+	int pieceShift = 12;	// bits 12-14 = piece id (000 = pawn, 001 = bishop, 010 = knight, 011 = rook, 100 = queen, 101 = king)
+	int capShift = 15;		// bit 15, 1 if capture, 0 otherwise
+
+	// bit masks
+	int fromMask = 0x3F;		// bits 0-5 = index of current piece
+	int toMask = 0xFC0;			// bits 6-11 = index of square to move to (0 to 63)
+	int pieceMask = 0x7000;		// bits 12-14 = piece id
+	int capMask = 0x8000;		// bit 15, 1 if capture 0 otherwise
+};

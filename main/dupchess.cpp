@@ -4,6 +4,7 @@
 #include <string>
 
 #include "dupEngine.h"
+#include "move.h"
 
 
 int main()
@@ -33,7 +34,8 @@ int main()
 		}
 		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
 			std::cout << "testing a thing" << std::endl;
-
+			Move m = Move(0x9FC0);
+			std::cout << m.getPGN() << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 		else {
