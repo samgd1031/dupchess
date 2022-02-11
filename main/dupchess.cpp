@@ -34,8 +34,9 @@ int main()
 		}
 		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
 			std::cout << "testing a thing" << std::endl;
-			Move m = Move(0x9FC0);
-			std::cout << m.getPGN() << std::endl;
+			Move m = Move(0xFC0);
+			std::cout << m.getLongSAN() << std::endl;
+			std::cout << "done testing a thing" << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 		else {
