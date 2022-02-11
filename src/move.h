@@ -8,8 +8,8 @@ public:
 	// constructor
 	Move(uint32_t data);
 
-	// return PGN notation string for move
-	std::string getPGN();
+	// return long SAN notation string for move
+	std::string getLongSAN();
 
 private:
 	uint32_t bits; // encoded move

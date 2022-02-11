@@ -6,8 +6,8 @@ Move::Move(uint32_t data) {
 	bits = data;
 }
 
-// return a PGN string for the move
-std::string Move::getPGN() {
+// return a long SAN notation string for the move
+std::string Move::getLongSAN() {
 	std::string pgn = "";
 	
 	// if not a pawn put the piece abbreviation
