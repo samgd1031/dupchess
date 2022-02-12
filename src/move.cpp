@@ -27,7 +27,8 @@ std::string Move::getLongSAN() {
 	// add the promotion
 	if ((bits & promoMask) >> promoShift == 1) {
 		// get piece promoting to
-		san += "=" + pieceAbbr[(bits & utilMask) >> utilShift];
+		san += "=";
+		san += pieceAbbr[(bits & utilMask) >> utilShift];
 	}
 
 	return san;

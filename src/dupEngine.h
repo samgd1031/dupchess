@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "board.h"
+#include "move.h"
 
 // class for the DupChess Engine
 // main class to handle UCI commands as well as manage the thinking about chess part
@@ -26,8 +27,8 @@ private:
 	Board gameboard;
 
 	// move generation
-	std::vector<std::string> getLegalMoves();
-
+	std::vector<Move> getLegalMoves();
+	inline std::vector<Move> getPawnMoves();
 
 	
 };
