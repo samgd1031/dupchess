@@ -4,6 +4,7 @@
 // Constructor ////////////////////////////
 DupEngine::DupEngine() {
 	gameboard = Board();
+	mlist.reserve(200);
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
 }
 ///////////////////////////////////////////
@@ -51,29 +52,40 @@ std::vector<Move> DupEngine::getLegalMoves() {
 // return a move list of all legal pawn moves
 // currently does:
 // single pawn pushes
+// double pawn pushes
 // /////////////////////
-// TODO: double pawn pushes
 // TODO: captures
 // TODO: en passant
 inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
-	// single pawn push
 	bitboard empty = ~(gameboard.current_state.white_pcs | gameboard.current_state.black_pcs);
-	bitboard targets;
+	bitboard single_tgts, dbl_tgts;
 	int color = (gameboard.current_state.whiteToMove) ? 1 : -1;
-	if ((*this).gameboard.current_state.whiteToMove) {
-		targets = ((gameboard.current_state.pawns & gameboard.current_state.white_pcs) << 8)  & empty;
-	}
-	else {
-		targets = ((gameboard.current_state.pawns & gameboard.current_state.black_pcs) >> 8) & empty;
-	}
-	// encode moves
-	int movecount = std::_Popcount(targets);
+	// get a pointer mask to only return pawns of the current color to move
+	bitboard *color_mask = (color == 1) ? &gameboard.current_state.white_pcs : &gameboard.current_state.black_pcs;
+	// single pawn push targets are the empty squares on the next file
+	single_tgts = genShift((gameboard.current_state.pawns & *color_mask), color * 8) & empty;
+
+	// double pawn push targets are the square on the next file after the single target as long as pawn is on file 2 (white) or 7 (black)
+	// single targets will be masked out on file 3 (this means the pawn is on file 2) or file 6 for black (black pawns on file 7)
+	bitboard dbl_mask = (color == 1) ? (bitboard)0x0000000000FF0000 : (bitboard)0x0000FF0000000000;
+	dbl_tgts = genShift((single_tgts & dbl_mask), color * 8) & empty;
+
+	// encode single moves and add to move list
+	int movecount = std::_Popcount(single_tgts);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanReverse64(&target_ind, targets);
-
+		_BitScanReverse64(&target_ind, single_tgts);
 		mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, false));
-		targets ^= 1ULL << target_ind;
+		single_tgts ^= 1ULL << target_ind;
+	}
+
+	// encode double moves and add to move list
+	movecount = std::_Popcount(dbl_tgts);
+	for (int ii = 0; ii < movecount; ii++) {
+		unsigned long target_ind;
+		_BitScanReverse64(&target_ind, dbl_tgts);
+		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, false, false));
+		dbl_tgts ^= 1ULL << target_ind;
 	}
 
 

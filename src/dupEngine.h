@@ -30,10 +30,9 @@ public:
 	//board representation
 	Board gameboard;
 private:
-	
+	std::vector<Move> mlist;
 
 	// move generation
-	
 	inline void findPawnMoves(std::vector<Move>& mlist);
 
 	
