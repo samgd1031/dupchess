@@ -1,0 +1,3 @@
+[submodule "SenjoUCIAdapter"]
+	path = SenjoUCIAdapter
+	url = https://github.com/zd3nik/SenjoUCIAdapter.git
