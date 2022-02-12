@@ -7,6 +7,7 @@ class Move {
 public:
 	// constructor
 	Move(uint32_t data);
+	Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo);
 
 	// return long SAN notation string for move
 	std::string getLongSAN();

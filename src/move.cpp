@@ -6,6 +6,14 @@ Move::Move(uint32_t data) {
 	bits = data;
 }
 
+Move::Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo) {
+	bits = fromInd;
+	bits |= toInd << toShift;
+	if (isCap) bits |= capMask;
+	if (isPromo) bits |= promoMask;
+}
+
+
 // return a long SAN notation string for the move
 std::string Move::getLongSAN() {
 	std::string san = "";

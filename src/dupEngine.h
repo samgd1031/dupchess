@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "utils.h"
 #include "board.h"
 #include "move.h"
@@ -10,7 +12,7 @@ class DupEngine {
 public:
 	DupEngine(); // constructor
 	
-	static const std::string START_FEN;
+	static std::string DupEngine::START_FEN;
 
 	// informational functions
 	std::string getEngineName();
@@ -22,13 +24,17 @@ public:
 	// game state functions
 	bool whiteToMove();
 
-private:
-	//board representation
-	Board gameboard;
-
 	// move generation
 	std::vector<Move> getLegalMoves();
-	inline std::vector<Move> getPawnMoves();
+
+	//board representation
+	Board gameboard;
+private:
+	
+
+	// move generation
+	
+	inline void findPawnMoves(std::vector<Move>& mlist);
 
 	
 };

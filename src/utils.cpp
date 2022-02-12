@@ -46,7 +46,7 @@ void printbitboard(bitboard bb) {
 	printf("\n  ABCDEFGH\n\n");
 }
 
-// function to flip a bitboard (XOR by 63)
+// function to flip a bitboard
 bitboard flipBitboard(bitboard bb) {
 	uint64_t flipped = 0ULL;
 	unsigned int s = sizeof(bb) * CHAR_BIT; // bit size; must be power of 2 
@@ -55,4 +55,9 @@ bitboard flipBitboard(bitboard bb) {
 		bb >>= 1ULL;
 	}
 	return flipped;
+}
+
+// generalized bit shift (left for positive, right for negative)
+uint64_t genShift(uint64_t x, int s) {
+	return (s > 0) ? (x << s) : (x >> -s);
 }

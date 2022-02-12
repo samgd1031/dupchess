@@ -4,7 +4,6 @@
 #include <string>
 
 #include "dupEngine.h"
-#include "move.h"
 
 
 int main()
@@ -34,8 +33,16 @@ int main()
 		}
 		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
 			std::cout << "testing a thing" << std::endl;
-			Move m = Move(0xFC0);
-			std::cout << m.getLongSAN() << std::endl;
+
+			std::string setFEN = "rnbqkbnr/ppppppp1/7p/8/8/P7/1PPPPPPP/RNBQKBNR w KQkq - 0 1";
+			engine.gameboard.setBoardFromFEN(setFEN);
+			std::cout << "current pawn state" << std::endl;
+			printbitboard(engine.gameboard.current_state.pawns);
+			std::vector<Move> mlist = engine.getLegalMoves();
+			std::cout << "moves I found" << std::endl;
+			for (int ii = 0; ii < mlist.size(); ii++) {
+				std::cout << ii << " - " << mlist[ii].getLongSAN() << std::endl;
+			}
 			std::cout << "done testing a thing" << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
