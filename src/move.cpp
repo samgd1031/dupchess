@@ -8,21 +8,27 @@ Move::Move(uint32_t data) {
 
 // return a long SAN notation string for the move
 std::string Move::getLongSAN() {
-	std::string pgn = "";
+	std::string san = "";
 	
 	// if not a pawn put the piece abbreviation
 	if ((bits & pieceMask) >> pieceShift > 0) {
-		pgn += pieceAbbr[(bits & pieceMask) >> pieceShift];
+		san += pieceAbbr[(bits & pieceMask) >> pieceShift];
 	}
 	// append the origin square
-	pgn += squareStrings[bits & fromMask];
+	san += squareStrings[bits & fromMask];
 	
 	// add an x if a capture
 	if ((bits & capMask) >> capShift == 1) {
-		pgn += "x";
+		san += "x";
 	}
 	// add the destination square
-	pgn += squareStrings[(bits & toMask) >> toShift];
+	san += squareStrings[(bits & toMask) >> toShift];
 
-	return pgn;
+	// add the promotion
+	if ((bits & promoMask) >> promoShift == 1) {
+		// get piece promoting to
+		san += "=" + pieceAbbr[(bits & utilMask) >> utilShift];
+	}
+
+	return san;
 }

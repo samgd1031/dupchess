@@ -28,5 +28,6 @@ private:
 	// move generation
 	std::vector<std::string> getLegalMoves();
 
+
 	
 };
