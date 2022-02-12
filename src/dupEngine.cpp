@@ -67,7 +67,6 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 		targets = ((gameboard.current_state.pawns & gameboard.current_state.black_pcs) >> 8) & empty;
 	}
 	// encode moves
-	printbitboard(targets);
 	int movecount = std::_Popcount(targets);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
