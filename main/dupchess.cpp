@@ -39,7 +39,7 @@ int main()
 			engine.gameboard.setBoardFromFEN(fen);
 
 			std::cout << "new board state:" << std::endl;
-			printbitboard((engine.gameboard.current_state.white_pcs | engine.gameboard.current_state.black_pcs));
+			util::printbitboard((engine.gameboard.current_state.white_pcs | engine.gameboard.current_state.black_pcs));
 
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
@@ -49,7 +49,7 @@ int main()
 
 			
 			std::cout << "current pawn state" << std::endl;
-			printbitboard(engine.gameboard.current_state.pawns);
+			util::printbitboard(engine.gameboard.current_state.pawns);
 			std::vector<Move> mlist = engine.getLegalMoves();
 			std::cout << "moves I found for " << ((engine.gameboard.current_state.whiteToMove) ? ("white") : ("black")) << std::endl;
 			for (int ii = 0; ii < mlist.size(); ii++) {

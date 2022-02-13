@@ -101,10 +101,10 @@ void Board::setBoardFromFEN(std::string FENstring) {
 
 	// en passant target square from fourth part of FEN
 	if (splitstr[3] == "=")
-		(*this).current_state.PIPI = squares::EMPTY_SQ;
+		(*this).current_state.PIPI = util::squares::EMPTY_SQ;
 	else
 	{
-		(*this).current_state.PIPI = stringToSquare(splitstr[3]);
+		(*this).current_state.PIPI = util::stringToSquare(splitstr[3]);
 	}
 
 	// half move/full move counters

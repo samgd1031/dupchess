@@ -73,12 +73,12 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	// get a pointer mask to only return pawns of the current color to move
 	bitboard *color_mask = (color == 1) ? &gameboard.current_state.white_pcs : &gameboard.current_state.black_pcs;
 	// single pawn push targets are the empty squares on the next file
-	single_tgts = genShift((gameboard.current_state.pawns & *color_mask), color * 8) & empty;
+	single_tgts = util::genShift((gameboard.current_state.pawns & *color_mask), color * 8) & empty;
 
 	// double pawn push targets are the square on the next file after the single target as long as pawn is on file 2 (white) or 7 (black)
 	// single targets will be masked out on file 3 (this means the pawn is on file 2) or file 6 for black (black pawns on file 7)
 	bitboard dbl_mask = (color == 1) ? (bitboard)0x0000000000FF0000 : (bitboard)0x0000FF0000000000;
-	dbl_tgts = genShift((single_tgts & dbl_mask), color * 8) & empty;
+	dbl_tgts = util::genShift((single_tgts & dbl_mask), color * 8) & empty;
 
 	// encode single moves and add to move list
 	int movecount = std::_Popcount(single_tgts);
