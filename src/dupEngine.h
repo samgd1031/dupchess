@@ -29,6 +29,10 @@ public:
 
 	//board representation
 	Board gameboard;
+
+	// talk smack to the haters
+	std::string trash_talk();
+
 private:
 	std::vector<Move> mlist;
 

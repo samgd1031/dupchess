@@ -31,6 +31,16 @@ std::string DupEngine::getCountryName() {
 }
 ///////////////////////////////////////////
 
+// Trash talk /////////////////////////////
+std::string DupEngine::trash_talk() {
+	std::string lines[3] = { "Up yours, Jonah!\n",
+							 "Bite my shiny metal ass!\n",
+							 "I'm afraid I can't let you do that...\n" };
+
+	return lines[std::rand() % 3];
+}
+///////////////////////////////////////////
+
 // game start string
 std::string DupEngine::START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 

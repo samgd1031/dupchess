@@ -59,7 +59,7 @@ int main()
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 		else if (_stricmp(cmd_string.c_str(), "trash_talk") == 0) {
-			std::cout << "Up yours, Jonah!\n" << std::endl;
+			std::cout << engine.trash_talk() << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 		else {
