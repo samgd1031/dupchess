@@ -6,11 +6,15 @@ Move::Move(uint32_t data) {
 	bits = data;
 }
 
-Move::Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo) {
+Move::Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo, bool isEP) {
 	bits = fromInd;
 	bits |= toInd << toShift;
 	if (isCap) bits |= capMask;
 	if (isPromo) bits |= promoMask;
+	if (isEP) {
+		bits |= epMask;						// set bit to encode this as an en passant move
+		bits |= (toInd - 8) << epShift;		// set util bits to have index of enpassant square
+	}
 }
 
 
@@ -35,7 +39,6 @@ std::string Move::getLongSAN() {
 	// add the promotion
 	if ((bits & promoMask) >> promoShift == 1) {
 		// get piece promoting to
-		san += "=";
 		san += util::pieceAbbr[(bits & utilMask) >> utilShift];
 	}
 

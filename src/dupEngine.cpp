@@ -63,8 +63,9 @@ std::vector<Move> DupEngine::getLegalMoves() {
 // currently does:
 // single pawn pushes
 // double pawn pushes
+// captures
 // /////////////////////
-// TODO: captures
+// TODO: promotions
 // TODO: en passant
 inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	bitboard empty = ~(gameboard.current_state.white_pcs | gameboard.current_state.black_pcs);
@@ -80,12 +81,22 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	bitboard dbl_mask = (color == 1) ? (bitboard)0x0000000000FF0000 : (bitboard)0x0000FF0000000000;
 	dbl_tgts = util::genShift((single_tgts & dbl_mask), color * 8) & empty;
 
+	// pawn attack targets are the squares to the northeast (southwest) and northwest (southeast) for white/black
+	// to avoid A/H file pawns the appropriate rank will be masked out
+	// space must also be occupied (not empty) to be a valid attack target
+	bitboard east_mask = (color == 1) ? 0x7F7F7F7F7F7F7F7F : 0xFEFEFEFEFEFEFEFE;
+	bitboard west_mask = (color == 1) ? 0xFEFEFEFEFEFEFEFE : 0x7F7F7F7F7F7F7F7F;
+	
+	bitboard east_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & east_mask, color * 9) & ~empty;
+	bitboard west_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & west_mask, color * 7) & ~empty;
+
+
 	// encode single moves and add to move list
 	int movecount = std::_Popcount(single_tgts);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanReverse64(&target_ind, single_tgts);
-		mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, false));
+		mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, false, false));
 		single_tgts ^= 1ULL << target_ind;
 	}
 
@@ -94,9 +105,24 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanReverse64(&target_ind, dbl_tgts);
-		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, false, false));
+		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, false, false, true));
 		dbl_tgts ^= 1ULL << target_ind;
 	}
 
-
+	// encode captures and add to move list
+	movecount = std::_Popcount(east_atk);
+	for (int ii = 0; ii < movecount; ii++) {
+		unsigned long target_ind;
+		_BitScanReverse64(&target_ind, east_atk);
+		mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, false));
+		east_atk ^= 1ULL << target_ind;
+	}
+	
+	movecount = std::_Popcount(west_atk);
+	for (int ii = 0; ii < movecount; ii++) {
+		unsigned long target_ind;
+		_BitScanReverse64(&target_ind, west_atk);
+		mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, false, false));
+		west_atk ^= 1ULL << target_ind;
+	}
 }

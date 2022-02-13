@@ -47,7 +47,6 @@ int main()
 		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
 			std::cout << "testing a thing" << std::endl;
 
-			
 			std::cout << "current pawn state" << std::endl;
 			util::printbitboard(engine.gameboard.current_state.pawns);
 			std::vector<Move> mlist = engine.getLegalMoves();
@@ -55,6 +54,8 @@ int main()
 			for (int ii = 0; ii < mlist.size(); ii++) {
 				std::cout << ii+1 << " - " << mlist[ii].getLongSAN() << std::endl;
 			}
+			
+
 			std::cout << "done testing a thing" << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}

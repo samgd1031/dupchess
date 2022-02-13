@@ -7,7 +7,7 @@ class Move {
 public:
 	// constructor
 	Move(uint32_t data);
-	Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo);
+	Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo, bool isEP);
 
 	// return long SAN notation string for move
 	std::string getLongSAN();
@@ -21,7 +21,8 @@ private:
 	static const int pieceShift = 12;		// bits 12-14 = piece id (000 = pawn, 001 = bishop, 010 = knight, 011 = rook, 100 = queen, 101 = king)
 	static const int capShift = 15;			// bit 15, 1 if capture, 0 otherwise
 	static const int promoShift = 16;		// bit 16, 1 if promotion (see utility bits for piece to promote into (001 = bishop, 010 = knight, 011 = rook, 100 = queen)
-	static const int utilShift = 17;		// bits 17-19, utility for encoding promo etc
+	static const int epShift = 17;			// bit 17, 1 if an en passant square is revealed (square index in util bits)
+	static const int utilShift = 18;		// bits 18-23, utility for encoding promo etc
 
 
 	// bit masks
@@ -30,5 +31,6 @@ private:
 	static const int pieceMask = 0x7000;		// bits 12-14 = piece id
 	static const int capMask = 0x8000;			// bit 15, 1 if capture 0 otherwise
 	static const int promoMask = 0x10000;		// bit 16, 1 if promotion 0 otherwise
-	static const int utilMask = 0xE0000;		// bit 17-19, util bits
+	static const int epMask = 0x20000;			// bit 17, en passant
+	static const int utilMask = 0xFC0000;		// bit 18-23, util bits
 };
