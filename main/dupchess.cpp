@@ -47,18 +47,23 @@ int main()
 		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
 			std::cout << "testing a thing" << std::endl;
 
-			std::cout << "current pawn state" << std::endl;
-			util::printbitboard(engine.gameboard.current_state.pawns);
-			std::vector<Move> mlist = engine.getLegalMoves();
-			std::cout << "moves I found for " << ((engine.gameboard.current_state.whiteToMove) ? ("white") : ("black")) << std::endl;
-			for (int ii = 0; ii < mlist.size(); ii++) {
-				std::cout << ii+1 << " - " << mlist[ii].getLongSAN() << std::endl;
+			engine.printGameState();
+			int max_moves = 5;
+			for (int ii = 0; ii < max_moves * 2; ii++) {
+				engine.makeMove();
+				engine.printGameState();
 			}
-			
 
 			std::cout << "done testing a thing" << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
+		//
+		else if (_stricmp(cmd_string.c_str(), "print_board") == 0) {
+			engine.printGameState();
+			std::cout << "Waiting for input... (exit to end)" << std::endl;
+		}
+
+		// talk smack
 		else if (_stricmp(cmd_string.c_str(), "trash_talk") == 0) {
 			std::cout << engine.trash_talk() << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;

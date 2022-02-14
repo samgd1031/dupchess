@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 
 #include "utils.h"
 #include "board.h"
@@ -26,15 +27,21 @@ public:
 
 	// move generation
 	std::vector<Move> getLegalMoves();
-
-	//board representation
-	Board gameboard;
+	void makeMove();
 
 	// talk smack to the haters
 	std::string trash_talk();
 
+	// print representation of game board/state
+	void printGameState();
+
+	//board representation
+	Board gameboard;
+
 private:
 	std::vector<Move> mlist;
+	std::vector<Move> mHistory;
+	std::vector<Board> boardHistory;
 
 	// move generation
 	inline void findPawnMoves(std::vector<Move>& mlist);

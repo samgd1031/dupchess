@@ -15,9 +15,6 @@ class Board {
 		void setBoardFromFEN(std::string FENstring);
 
 	private:
-		// holds the state of the game in the last halfmove
-		util::BOARD_STATE last_state;
-
 		// clears all pieces off board (all bitboards to zero), used when setting board state from FEN
 		void clearBoard();
 };

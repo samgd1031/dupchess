@@ -12,6 +12,15 @@ public:
 	// return long SAN notation string for move
 	std::string getLongSAN();
 
+	// get information about the move
+	int getFromSquare();
+	int getToSquare();
+	int getPieceID();
+	int isCapture();
+	int isPawnPromo();
+	int isDoublePawnPush();
+	int getUtilValue();
+
 private:
 	uint32_t bits; // encoded move
 
@@ -32,5 +41,5 @@ private:
 	static const int capMask = 0x8000;			// bit 15, 1 if capture 0 otherwise
 	static const int promoMask = 0x10000;		// bit 16, 1 if promotion 0 otherwise
 	static const int epMask = 0x20000;			// bit 17, en passant
-	static const int utilMask = 0xFC0000;		// bit 18-23, util bits
+	static const int utilMask = 0xFF0000;		// bit 18-25, util bits
 };
