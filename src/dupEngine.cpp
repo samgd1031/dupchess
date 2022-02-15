@@ -2,12 +2,13 @@
 
 
 // Constructor ////////////////////////////
-DupEngine::DupEngine() {
+DupEngine::DupEngine(void) {
 	gameboard = Board();
 	mlist.reserve(200);
 	mHistory.reserve(80);
 	boardHistory.reserve(40);
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
+	srand((int)time(NULL));  // set random generator seed
 }
 ///////////////////////////////////////////
 
@@ -35,11 +36,12 @@ std::string DupEngine::getCountryName() {
 
 // Trash talk /////////////////////////////
 std::string DupEngine::trash_talk() {
-	std::string lines[3] = { "Up yours, Jonah!\n",
+	std::string lines[4] = { "Up yours, Jonah!\n",
 							 "Bite my shiny metal ass!\n",
-							 "I'm afraid I can't let you do that...\n" };
+							 "I'm afraid I can't let you do that...\n",
+							 "'Not only do I smell bad, I'm horrible at chess!'\n\t-Jonah"};
 
-	return lines[std::rand() % 3];
+	return lines[std::rand() % 4];
 }
 ///////////////////////////////////////////
 
@@ -139,7 +141,7 @@ void DupEngine::makeMove() {
 
 	// pick a random move from movelist
 	if (mlist.size() == 0) {
-		printf("I'm a big fat loser!\n");
+		printf("%s has no moves!\n", (gameboard.current_state.whiteToMove) ? "White" : "Black");
 		return;
 	}
 	Move moveToMake = mlist[std::rand() % mlist.size()];
@@ -178,6 +180,8 @@ void DupEngine::makeMove() {
 	case 5:
 		type_mask = &gameboard.current_state.kings;
 		break;
+	default:
+		throw "Invalid piece ID";
 	}
 
 	// clear bit for piece type/color on from square

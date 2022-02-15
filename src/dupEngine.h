@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <time.h>
 
 #include "utils.h"
 #include "board.h"
@@ -11,8 +12,6 @@
 // main class to handle UCI commands as well as manage the thinking about chess part
 class DupEngine {
 public:
-	DupEngine(); // constructor
-	
 	static std::string DupEngine::START_FEN;
 
 	// informational functions
@@ -37,6 +36,9 @@ public:
 
 	//board representation
 	Board gameboard;
+
+	// constructor
+	DupEngine();
 
 private:
 	std::vector<Move> mlist;

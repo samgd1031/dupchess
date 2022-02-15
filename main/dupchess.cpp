@@ -53,6 +53,7 @@ int main()
 				engine.makeMove();
 				engine.printGameState();
 			}
+			
 
 			std::cout << "done testing a thing" << std::endl;
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
