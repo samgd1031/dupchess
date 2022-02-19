@@ -68,8 +68,8 @@ std::vector<Move> DupEngine::getLegalMoves() {
 // single pawn pushes
 // double pawn pushes
 // captures
+// promotions
 // /////////////////////
-// TODO: promotions
 // TODO: en passant
 inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	bitboard empty = ~(gameboard.current_state.white_pcs | gameboard.current_state.black_pcs);
@@ -100,7 +100,15 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanReverse64(&target_ind, single_tgts);
-		mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, false, false));
+		// if pawn makes it to the end add all possible promotion moves
+		if(((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))){
+			for (uint8_t jj = 1; jj < 5; jj++) {
+				mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, true, false, jj));
+			}
+		}
+		else{ // no promotion
+			mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, false, false, 0));
+		}
 		single_tgts ^= 1ULL << target_ind;
 	}
 
@@ -109,7 +117,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanReverse64(&target_ind, dbl_tgts);
-		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, false, false, true));
+		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, false, false, true, 0));
 		dbl_tgts ^= 1ULL << target_ind;
 	}
 
@@ -118,7 +126,15 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanReverse64(&target_ind, east_atk);
-		mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, false));
+		// if pawn makes it to the end add all possible promotion moves
+		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
+			for (uint8_t jj = 1; jj < 5; jj++) {
+				mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, true, false, jj));
+			}
+		}
+		else{
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, false, 0));
+		}
 		east_atk ^= 1ULL << target_ind;
 	}
 	
@@ -126,7 +142,15 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanReverse64(&target_ind, west_atk);
-		mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, false, false));
+		// if pawn makes it to the end add all possible promotion moves
+		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
+			for (uint8_t jj = 1; jj < 5; jj++) {
+				mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, true, false, jj));
+			}
+		}
+		else{
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, false, 0));
+		}
 		west_atk ^= 1ULL << target_ind;
 	}
 }
@@ -213,6 +237,30 @@ void DupEngine::makeMove() {
 	}
 	else { // set en passant target to empty square
 		gameboard.current_state.PIPI = util::squares(64);
+	}
+
+	// if promotion, switch the pawn to the appropriate piece
+	if (moveToMake.isPawnPromo()) {
+		uint8_t promoID = moveToMake.getUtilValue();
+		// clear bit from pawn bitboard
+		gameboard.current_state.pawns &= ~(1ULL << toSq);
+		// set bit on appropriate other piece bitboard
+		switch(promoID){
+		case 1: // bishop
+			gameboard.current_state.bishops |= 1ULL << toSq;
+			break;
+		case 2: // knight
+			gameboard.current_state.knights |= 1ULL << toSq;
+			break;
+		case 3: // rook
+			gameboard.current_state.rooks |= 1ULL << toSq;
+			break;
+		case 4: // queen
+			gameboard.current_state.queens |= 1ULL << toSq;
+			break;
+		default:
+			throw "invalid piece ID for promotion";
+		}
 	}
 	
 	// switch side to move

@@ -39,7 +39,7 @@ int main()
 			engine.gameboard.setBoardFromFEN(fen);
 
 			std::cout << "new board state:" << std::endl;
-			util::printbitboard((engine.gameboard.current_state.white_pcs | engine.gameboard.current_state.black_pcs));
+			engine.printGameState();
 
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
@@ -48,7 +48,7 @@ int main()
 			std::cout << "testing a thing" << std::endl;
 
 			engine.printGameState();
-			int max_moves = 5;
+			int max_moves = 1;
 			for (int ii = 0; ii < max_moves * 2; ii++) {
 				engine.makeMove();
 				engine.printGameState();

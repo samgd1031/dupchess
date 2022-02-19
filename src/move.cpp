@@ -6,7 +6,7 @@ Move::Move(uint32_t data) {
 	bits = data;
 }
 
-Move::Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo, bool isEP) {
+Move::Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo, bool isEP, uint8_t util_bits) {
 	bits = 0;
 	bits = fromInd;
 	bits |= toInd << toShift;
@@ -22,6 +22,7 @@ Move::Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo, bool isEP
 			bits |= (toInd + 8) << utilShift;
 		}
 	}
+	bits |= util_bits << utilShift;
 }
 
 
@@ -71,4 +72,4 @@ int Move::isPawnPromo() { return (bits & promoMask) >> promoShift; }
 int Move::isDoublePawnPush() { return (bits & epMask) >> epShift; }
 
 // return value in utility bits
-int Move::getUtilValue() { return (bits & utilMask) >> utilShift; }
+uint8_t Move::getUtilValue() { return (bits & utilMask) >> utilShift; }
