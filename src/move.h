@@ -30,7 +30,7 @@ private:
 	static const int pieceShift = 12;		// bits 12-14 = piece id (000 = pawn, 001 = bishop, 010 = knight, 011 = rook, 100 = queen, 101 = king)
 	static const int capShift = 15;			// bit 15, 1 if capture, 0 otherwise
 	static const int promoShift = 16;		// bit 16, 1 if promotion (see utility bits for piece to promote into (001 = bishop, 010 = knight, 011 = rook, 100 = queen)
-	static const int epShift = 17;			// bit 17, 1 if an en passant square is revealed (square index in util bits)
+	static const int epShift = 17;			// bit 17, 1 if an en passant square is revealed (square index in util bits) OR an en passant capture move (if capture bit is also set)
 	static const int utilShift = 18;		// bits 18-25, utility for encoding promo etc
 
 

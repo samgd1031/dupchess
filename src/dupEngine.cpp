@@ -273,12 +273,12 @@ void DupEngine::makeMove() {
 	*type_mask |= 1ULL << toSq;
 
 	// if double pawn push, set en passant target square
-	if (moveToMake.isEnPassant() & !moveToMake.isCapture()) {
+	if (moveToMake.isEnPassant() && !moveToMake.isCapture()) {
 		int epTarget = moveToMake.getUtilValue();
 		gameboard.current_state.PIPI = util::squares(epTarget);
 	}
 	else { // set en passant target to empty square
-		gameboard.current_state.PIPI = util::squares(64);
+		gameboard.current_state.PIPI = util::squares::EMPTY_SQ;
 	}
 
 	// if promotion, switch the pawn to the appropriate piece
