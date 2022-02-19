@@ -187,12 +187,6 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 void DupEngine::makeMove() {
 	// get list of all legal moves
 	mlist = getLegalMoves();
-	for (int ii = 0; ii < mlist.size(); ii++) {
-		std::cout << ii + 1 << " - " << mlist[ii].getLongSAN()
-			<< "from: " << mlist[ii].getFromSquare()
-			<< " to: " << mlist[ii].getToSquare()
-			<< std::endl;
-	}
 
 	// pick a random move from movelist
 	if (mlist.size() == 0) {
