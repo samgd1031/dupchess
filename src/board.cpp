@@ -25,7 +25,7 @@ void Board::setBoardFromFEN(std::string FENstring) {
 	(*this).clearBoard();
 	//
 
-	uint64_t piece_index = 63;
+	uint64_t piece_index = 56;
 	for (int ii = 0; ii < splitstr[0].length(); ii++) {
 		char c_char = splitstr[0][ii];
 		if (isalpha(c_char)) // piece
@@ -61,11 +61,14 @@ void Board::setBoardFromFEN(std::string FENstring) {
 				break;
 			}
 
-			piece_index--;
+			piece_index++;
 		}
 		else if (isdigit(c_char)) // if digit, increment number of empty squares
 		{
-			piece_index -= ((uint64_t)c_char - '0');
+			piece_index += ((uint64_t)c_char - '0');
+		}
+		else if (c_char == '/') {// go down to the next rank
+			piece_index -= 16;
 		}
 	}
 
@@ -100,7 +103,7 @@ void Board::setBoardFromFEN(std::string FENstring) {
 	}
 
 	// en passant target square from fourth part of FEN
-	if (splitstr[3] == "=")
+	if (splitstr[3] == "-")
 		(*this).current_state.PIPI = util::squares::EMPTY_SQ;
 	else
 	{

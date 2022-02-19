@@ -49,7 +49,7 @@ int main()
 
 			engine.printGameState();
 			int max_moves = 1;
-			for (int ii = 0; ii < max_moves * 2; ii++) {
+			for (int ii = 0; ii < max_moves; ii++) {
 				engine.makeMove();
 				engine.printGameState();
 			}

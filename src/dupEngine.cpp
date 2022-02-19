@@ -90,7 +90,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	// space must also be occupied (not empty) to be a valid attack target
 	bitboard east_mask = (color == 1) ? 0x7F7F7F7F7F7F7F7F : 0xFEFEFEFEFEFEFEFE;
 	bitboard west_mask = (color == 1) ? 0xFEFEFEFEFEFEFEFE : 0x7F7F7F7F7F7F7F7F;
-	
+
 	bitboard east_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & east_mask, color * 9) & ~empty;
 	bitboard west_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & west_mask, color * 7) & ~empty;
 
@@ -149,9 +149,34 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 			}
 		}
 		else{
-			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, false, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, false, false, 0));
 		}
 		west_atk ^= 1ULL << target_ind;
+	}
+
+	// check en passant
+	if (gameboard.current_state.PIPI != util::squares::EMPTY_SQ) {
+		bitboard epTarget = 1ULL << (int)gameboard.current_state.PIPI;
+
+		bitboard east_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & east_mask, color * 9) & epTarget;
+		bitboard west_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & west_mask, color * 7) & epTarget;
+
+		// encode moves
+		movecount = std::_Popcount(east_atk);
+		for (int ii = 0; ii < movecount; ii++) {
+			unsigned long target_ind;
+			_BitScanReverse64(&target_ind, east_atk);
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, true, 0));
+			east_atk ^= 1ULL << target_ind;
+		}
+
+		movecount = std::_Popcount(west_atk);
+		for (int ii = 0; ii < movecount; ii++) {
+			unsigned long target_ind;
+			_BitScanReverse64(&target_ind, west_atk);
+			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, false, true, 0));
+			east_atk ^= 1ULL << target_ind;
+		}
 	}
 }
 
@@ -162,6 +187,12 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 void DupEngine::makeMove() {
 	// get list of all legal moves
 	mlist = getLegalMoves();
+	for (int ii = 0; ii < mlist.size(); ii++) {
+		std::cout << ii + 1 << " - " << mlist[ii].getLongSAN()
+			<< "from: " << mlist[ii].getFromSquare()
+			<< " to: " << mlist[ii].getToSquare()
+			<< std::endl;
+	}
 
 	// pick a random move from movelist
 	if (mlist.size() == 0) {
@@ -214,15 +245,26 @@ void DupEngine::makeMove() {
 
 	// clear opponent's piece on to square if this move is a capture
 	if (moveToMake.isCapture()) {
-		*enemy_mask &= ~(1ULL << toSq); // clear enemy color
+		// if move is en passant, piece to clear is on a different square
+		int indToClear;
+		if(moveToMake.isEnPassant()){
+			indToClear = (gameboard.current_state.whiteToMove) ? toSq - 8 : toSq + 8 ;
+		}
+		else{ // otherwise square to clear is the destination square
+			indToClear = toSq;
+		}
+
+		
+
+		*enemy_mask &= ~(1ULL << indToClear); // clear enemy color
 		// for now be lazy and clear all piece types at that index
 		// most will already be zero
 		// this will probably come back to bite me in the ass later
-		gameboard.current_state.pawns &= ~(1ULL << toSq); 
-		gameboard.current_state.bishops &= ~(1ULL << toSq); 
-		gameboard.current_state.knights &= ~(1ULL << toSq); 
-		gameboard.current_state.rooks &= ~(1ULL << toSq); 
-		gameboard.current_state.queens &= ~(1ULL << toSq);
+		gameboard.current_state.pawns &= ~(1ULL << indToClear);
+		gameboard.current_state.bishops &= ~(1ULL << indToClear);
+		gameboard.current_state.knights &= ~(1ULL << indToClear);
+		gameboard.current_state.rooks &= ~(1ULL << indToClear);
+		gameboard.current_state.queens &= ~(1ULL << indToClear);
 
 	}
 
@@ -231,7 +273,7 @@ void DupEngine::makeMove() {
 	*type_mask |= 1ULL << toSq;
 
 	// if double pawn push, set en passant target square
-	if (moveToMake.isDoublePawnPush()) {
+	if (moveToMake.isEnPassant() & !moveToMake.isCapture()) {
 		int epTarget = moveToMake.getUtilValue();
 		gameboard.current_state.PIPI = util::squares(epTarget);
 	}
@@ -276,38 +318,36 @@ void DupEngine::makeMove() {
 /// </summary>
 void DupEngine::printGameState() {
 	// first, print the board
-	uint64_t ii = 1ULL << 63;
 	char pieceStr;
 
-	for (int count = 64; count > 0; count--) {
-		if (count % 8 == 0) {
-			printf("\n%i ", count / 8);
+	for (int rank = 8; rank > 0; rank--) {
+		printf("\n%i ", rank);
+		for (int file = (rank - 1) * 8; file < rank * 8; file++) {
+			bitboard ii = 1ULL << file;
+			if (gameboard.current_state.pawns & ii) {
+				pieceStr = 'P';
+			}
+			else if (gameboard.current_state.bishops & ii) {
+				pieceStr = 'B';
+			}
+			else if (gameboard.current_state.knights & ii) {
+				pieceStr = 'N';
+			}
+			else if (gameboard.current_state.rooks & ii) {
+				pieceStr = 'R';
+			}
+			else if (gameboard.current_state.queens & ii) {
+				pieceStr = 'Q';
+			}
+			else if (gameboard.current_state.kings & ii) {
+				pieceStr = 'K';
+			}
+			else {
+				pieceStr = '.';
+			}
+			if (gameboard.current_state.black_pcs & ii) { pieceStr = tolower(pieceStr); }
+			printf("%c", pieceStr);
 		}
-		if (gameboard.current_state.pawns & ii) {
-			pieceStr = 'P';
-		}
-		else if (gameboard.current_state.bishops & ii) {
-			pieceStr = 'B';
-		}
-		else if (gameboard.current_state.knights & ii) {
-			pieceStr = 'N';
-		}
-		else if (gameboard.current_state.rooks & ii) {
-			pieceStr = 'R';
-		}
-		else if (gameboard.current_state.queens & ii) {
-			pieceStr = 'Q';
-		}
-		else if (gameboard.current_state.kings & ii) {
-			pieceStr = 'K';
-		}
-		else {
-			pieceStr = '.';
-		}
-		if (gameboard.current_state.black_pcs & ii) { pieceStr = tolower(pieceStr); }
-		printf("%c", pieceStr);
-
-		ii >>= 1;
 	}
 	printf("\n  ABCDEFGH\n\n");
 

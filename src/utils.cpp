@@ -31,17 +31,14 @@ void util::printbitboard(bitboard bb) {
 
 	ii = 1ULL << (sizeof(bb) * CHAR_BIT - 1);
 	count = 64;
-	while (ii > 0) {
-		if (count % 8 == 0)
-			printf("\n%llu ", count / 8);
-
-		if (bb & ii)
-			printf("1");
-		else
-			printf("0");
-		ii >>= 1;
-		count--;
-
+	for (int rank = 8; rank > 0; rank--) {
+		printf("\n%i ", rank);
+		for (int file = (rank - 1) * 8; file < rank * 8; file++) {
+			if (bb & (1ULL << file))
+				printf("1");
+			else
+				printf("0");
+		}
 	}
 	printf("\n  ABCDEFGH\n\n");
 }

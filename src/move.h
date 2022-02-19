@@ -18,7 +18,7 @@ public:
 	int getPieceID();
 	int isCapture();
 	int isPawnPromo();
-	int isDoublePawnPush();
+	int isEnPassant();
 	uint8_t getUtilValue();
 
 private:

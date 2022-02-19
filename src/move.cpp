@@ -36,7 +36,10 @@ std::string Move::getLongSAN() {
 	}
 	// append the origin square
 	san += util::squareStrings[bits & fromMask];
-	
+	// if move is en passantcapture, remove the rank number
+	if (isCapture() & isEnPassant()) {
+		san = san.substr(0, san.size() - 1);
+	}
 	// add an x if a capture
 	if ((bits & capMask) >> capShift == 1) {
 		san += "x";
@@ -68,8 +71,8 @@ int Move::isCapture() { return (bits & capMask) >> capShift; }
 // return 1 if this move is a pawn promotion, 0 otherwise
 int Move::isPawnPromo() { return (bits & promoMask) >> promoShift; }
 
-// return 1 if this move is a double pawn push (and therefore en passant is possible), 0 otherwise
-int Move::isDoublePawnPush() { return (bits & epMask) >> epShift; }
+// return 1 if this move is a pawn promotion, 0 otherwise
+int Move::isEnPassant() { return (bits & epMask) >> epShift; }
 
 // return value in utility bits
 uint8_t Move::getUtilValue() { return (bits & utilMask) >> utilShift; }
