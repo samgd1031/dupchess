@@ -57,8 +57,20 @@ bool DupEngine::whiteToMove() {
 
 // Move Generation
 std::vector<Move> DupEngine::getLegalMoves() {
+	int color = (gameboard.state.whiteToMove) ? 1 : -1;
+	// get a pointer mask to only return pieces of the current color to move
+	bitboard* color_mask = (color == 1) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
+
 	std::vector<Move> movelist;
-	DupEngine::findPawnMoves(movelist);
+	DupEngine::findPawnMoves(movelist, color, color_mask);
+	bitboard rooks_to_move = gameboard.state.rooks & *color_mask;
+	for (int ii = 0; ii < std::_Popcount(rooks_to_move); ii++) {
+		unsigned long rook_index;
+		_BitScanForward64(&rook_index, rooks_to_move);
+		DupEngine::findRookMoves(movelist, rook_index, color, color_mask);
+		rooks_to_move &= ~(1ULL << rook_index);
+	}
+	
 
 	return movelist;
 }
@@ -71,12 +83,9 @@ std::vector<Move> DupEngine::getLegalMoves() {
 // promotions
 // en passant
 // /////////////////////
-inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
+inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboard* color_mask) {
 	bitboard empty = ~(gameboard.state.white_pcs | gameboard.state.black_pcs);
 	bitboard single_tgts, dbl_tgts;
-	int color = (gameboard.state.whiteToMove) ? 1 : -1;
-	// get a pointer mask to only return pawns of the current color to move
-	bitboard *color_mask = (color == 1) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
 	// single pawn push targets are the empty squares on the next file
 	single_tgts = util::genShift((gameboard.state.pawns & *color_mask), color * 8) & empty;
 
@@ -103,11 +112,11 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 		// if pawn makes it to the end add all possible promotion moves
 		if(((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))){
 			for (uint8_t jj = 1; jj < 5; jj++) {
-				mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, true, false, jj));
+				mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, util::Piece::PAWN, false, true, false, jj));
 			}
 		}
 		else{ // no promotion
-			mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, false, false, false, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, util::Piece::PAWN, false, false, false, 0));
 		}
 		single_tgts ^= 1ULL << target_ind;
 	}
@@ -117,7 +126,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, dbl_tgts);
-		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, false, false, true, 0));
+		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, util::Piece::PAWN, false, false, true, 0));
 		dbl_tgts ^= 1ULL << target_ind;
 	}
 
@@ -129,11 +138,11 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
-				mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, true, false, jj));
+				mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, jj));
 			}
 		}
 		else{
-			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, false, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, 0));
 		}
 		east_atk ^= 1ULL << target_ind;
 	}
@@ -145,11 +154,11 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
-				mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, true, false, jj));
+				mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, jj));
 			}
 		}
 		else{
-			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, false, false, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, 0));
 		}
 		west_atk ^= 1ULL << target_ind;
 	}
@@ -166,7 +175,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
 			_BitScanForward64(&target_ind, east_atk);
-			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, true, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
 
@@ -174,9 +183,53 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
 			_BitScanForward64(&target_ind, west_atk);
-			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, false, true, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
+	}
+}
+
+/// <summary>
+/// given a pointer to a move list and index, append to the list all possible rook moves
+/// rook moves are along ranks or files
+/// </summary>
+/// <param name="mlist"></param>
+/// <param name="sqIndex"></param>
+inline void DupEngine::findRookMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask) {
+	int rank = sqIndex / 8;
+	int file = sqIndex % 8;
+
+	bitboard occ = (gameboard.state.white_pcs | gameboard.state.black_pcs);
+
+	// vertical moves with hyperbolic quintessence
+	bitboard vert = util::hyp_quint(occ, util::fileMasks[file], sqIndex);
+
+	// horizontal moves cant use hyperbolic quintessence because of dumb math reason
+	// this is probably a slowish way to do it (lookup tables maybe faster but I'm dumb)
+	bitboard horz = util::rankAttacks(occ, sqIndex);
+
+	// get quiescent moves
+	bitboard rook_moves = (vert | horz) & ~occ;
+
+	// AND with inverse of color mask to remove the possibility of capturing own pieces
+	bitboard rook_atks = ((vert | horz) & occ) & ~*color_mask;
+
+	// encode moves
+	int n_moves = std::_Popcount(rook_moves);
+	for (int ii = 0; ii < n_moves; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, rook_moves);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, false, false, false, 0));
+		rook_moves ^= 1ULL << target_ind;
+	}
+
+	// encode captures
+	n_moves = std::_Popcount(rook_atks);
+	for (int ii = 0; ii < n_moves; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, rook_atks);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, true, false, false, 0));
+		rook_atks ^= 1ULL << target_ind;
 	}
 }
 

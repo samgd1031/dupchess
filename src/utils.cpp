@@ -58,3 +58,48 @@ bitboard util::flipBitboard(bitboard bb) {
 uint64_t util::genShift(uint64_t x, int s) {
 	return (s > 0) ? (x << s) : (x >> -s);
 }
+
+// hyperbola quintessence for sliding attacks
+bitboard util::hyp_quint(bitboard occ, bitboard mask, int sqInd) {
+	bitboard o, r, o_rev, r_rev;
+	o = occ & mask;
+	r = 1ULL << sqInd;
+	o_rev = _byteswap_uint64(o);
+	r_rev = _byteswap_uint64(r);
+
+
+	return ((o - (2 * r)) ^ _byteswap_uint64(o_rev - (2 * r_rev))) & mask;
+}
+
+// get valid rook moves/attacks along a rank (horizontally)
+bitboard util::rankAttacks(bitboard occ, int sqInd){
+	int rank = sqInd / 8;
+	bitboard rank_o = (occ & util::rankMasks[rank]);
+
+	// extract rank with sliding piece
+	uint8_t occ_byte = rank_o >> rank*8;
+	int file = sqInd % 8;
+
+	bitboard rank_atk = 0;
+
+	// moves/attacks towards H file
+	int ii = file + 1;
+	while (ii < 8) {
+		rank_atk |= 1ULL << ii;
+		// if bit is occupied, set this as a valid move (capture) and break
+		if ((occ_byte >> ii) & 1U) {break;}
+		ii++;
+	}
+	// moves/attacks towards A file
+	ii = file - 1;
+	while (ii > 0) {
+		rank_atk |= 1ULL << ii;
+		// if bit is occupied, set this as a valid move (capture) and break
+		if ((occ_byte >> ii) & 1U) { break; }
+		ii--;
+	}
+
+	// shift back to appropriate rank and return
+	return rank_atk << rank * 8;
+
+}

@@ -6,10 +6,30 @@ Move::Move(uint32_t data) {
 	bits = data;
 }
 
-Move::Move(uint32_t fromInd, uint32_t toInd, bool isCap, bool isPromo, bool isEP, uint8_t util_bits) {
+Move::Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool isPromo, bool isEP, uint8_t util_bits) {
 	bits = 0;
 	bits = fromInd;
 	bits |= toInd << toShift;
+	switch (pID) {
+	case util::Piece::PAWN:
+		bits |= 0x00000000 << pieceShift;
+		break;
+	case util::Piece::BISHOP:
+		bits |= 0x00000001 << pieceShift;
+		break;
+	case util::Piece::KNIGHT:
+		bits |= 0x00000002 << pieceShift;
+		break;
+	case util::Piece::ROOK:
+		bits |= 0x00000003 << pieceShift;
+		break;
+	case util::Piece::QUEEN:
+		bits |= 0x00000004 << pieceShift;
+		break;
+	case util::Piece::KING:
+		bits |= 0x00000005 << pieceShift;
+		break;
+	}
 	if (isCap) bits |= capMask;
 	if (isPromo) bits |= promoMask;
 	if (isEP) {

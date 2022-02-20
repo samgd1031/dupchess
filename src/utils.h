@@ -11,6 +11,8 @@ typedef uint64_t bitboard;
 namespace util {
 	enum class colors { WHITE, BLACK, NONE };
 
+	enum class Piece { PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING, NONE };
+
 	static const char* pieceAbbr[6]{ "P","B","N","R","Q","K" };
 
 	enum class squares {
@@ -39,14 +41,14 @@ namespace util {
 
 	// index 0 is a mask for file a, 7 for file h
 	static const bitboard fileMasks[8]{
-		0x8080808080808080,
-		0x4040404040404040,
-		0x2020202020202020,
-		0x1010101010101010,
-		0x0808080808080808,
-		0x0404040404040404,
-		0x0202020202020202,
 		0x0101010101010101,
+		0x0202020202020202,
+		0x0404040404040404,
+		0x0808080808080808,
+		0x1010101010101010,
+		0x2020202020202020,
+		0x4040404040404040,
+		0x8080808080808080,
 
 	};
 
@@ -99,4 +101,10 @@ namespace util {
 
 	// generalized bit shift (left for positive, right for negative)
 	uint64_t genShift(uint64_t x, int s);
+
+	// hyperbola quintessence for sliding attacks
+	bitboard hyp_quint(bitboard occ, bitboard mask, int sqInd);
+
+	// get valid rook occupancy on a rank
+	bitboard rankAttacks(bitboard occ, int sqInd);
 };
