@@ -9,7 +9,7 @@
 class Board {
 	public:
 		// holds the current state of the game
-		util::BOARD_STATE current_state;
+		util::BOARD_STATE state;
 		
 		// sets board state from FEN string
 		void setBoardFromFEN(std::string FENstring);

@@ -32,32 +32,32 @@ void Board::setBoardFromFEN(std::string FENstring) {
 		{
 			if (isupper(c_char)) // white piece
 			{
-				(*this).current_state.white_pcs = (1ULL << piece_index) | (*this).current_state.white_pcs;
+				(*this).state.white_pcs = (1ULL << piece_index) | (*this).state.white_pcs;
 			}
 			else // black piece
 			{
-				(*this).current_state.black_pcs = (1ULL << piece_index) | (*this).current_state.black_pcs;
+				(*this).state.black_pcs = (1ULL << piece_index) | (*this).state.black_pcs;
 			}
 
 			// piece type
 			switch (tolower(c_char)) {
 			case 'r':
-				(*this).current_state.rooks = (1ULL << piece_index) | (*this).current_state.rooks;
+				(*this).state.rooks = (1ULL << piece_index) | (*this).state.rooks;
 				break;
 			case 'n':
-				(*this).current_state.knights = (1ULL << piece_index) | (*this).current_state.knights;
+				(*this).state.knights = (1ULL << piece_index) | (*this).state.knights;
 				break;
 			case 'b':
-				(*this).current_state.bishops = (1ULL << piece_index) | (*this).current_state.bishops;
+				(*this).state.bishops = (1ULL << piece_index) | (*this).state.bishops;
 				break;
 			case 'q':
-				(*this).current_state.queens = (1ULL << piece_index) | (*this).current_state.queens;
+				(*this).state.queens = (1ULL << piece_index) | (*this).state.queens;
 				break;
 			case 'k':
-				(*this).current_state.kings = (1ULL << piece_index) | (*this).current_state.kings;
+				(*this).state.kings = (1ULL << piece_index) | (*this).state.kings;
 				break;
 			case 'p':
-				(*this).current_state.pawns = (1ULL << piece_index) | (*this).current_state.pawns;
+				(*this).state.pawns = (1ULL << piece_index) | (*this).state.pawns;
 				break;
 			}
 
@@ -74,12 +74,12 @@ void Board::setBoardFromFEN(std::string FENstring) {
 
 	// set active color from second part of FEN
 	if (splitstr[1] == "w")
-		(*this).current_state.whiteToMove = true;
+		(*this).state.whiteToMove = true;
 	else
-		(*this).current_state.whiteToMove = false;
+		(*this).state.whiteToMove = false;
 
 	// castling rights from third part of FEN
-	(*this).current_state.castleRights = 0x0;
+	(*this).state.castleRights = 0x0;
 	if (splitstr[2] != "-")  // need to set one or more bits
 	{
 		for (auto& ch : splitstr[2])
@@ -87,16 +87,16 @@ void Board::setBoardFromFEN(std::string FENstring) {
 			switch (ch)
 			{
 			case 'K':
-				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x8);
+				(*this).state.castleRights = (*this).state.castleRights | std::bitset<4>(0x8);
 				break;
 			case 'Q':
-				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x4);
+				(*this).state.castleRights = (*this).state.castleRights | std::bitset<4>(0x4);
 				break;
 			case 'k':
-				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x2);
+				(*this).state.castleRights = (*this).state.castleRights | std::bitset<4>(0x2);
 				break;
 			case 'q':
-				(*this).current_state.castleRights = (*this).current_state.castleRights | std::bitset<4>(0x1);
+				(*this).state.castleRights = (*this).state.castleRights | std::bitset<4>(0x1);
 				break;
 			}
 		}
@@ -104,26 +104,26 @@ void Board::setBoardFromFEN(std::string FENstring) {
 
 	// en passant target square from fourth part of FEN
 	if (splitstr[3] == "-")
-		(*this).current_state.PIPI = util::squares::EMPTY_SQ;
+		(*this).state.PIPI = util::squares::EMPTY_SQ;
 	else
 	{
-		(*this).current_state.PIPI = util::stringToSquare(splitstr[3]);
+		(*this).state.PIPI = util::stringToSquare(splitstr[3]);
 	}
 
 	// half move/full move counters
-	(*this).current_state.halfmove = stoi(splitstr[4]);
-	(*this).current_state.fullmove = stoi(splitstr[5]);
+	(*this).state.halfmove = stoi(splitstr[4]);
+	(*this).state.fullmove = stoi(splitstr[5]);
 
 }
 
 // clear all bitboards (used prior to piece assignment from FEN)
 void Board::clearBoard() {
-	(*this).current_state.white_pcs = 0ULL;		// all white pieces
-	(*this).current_state.black_pcs = 0ULL;		// all black pieces
-	(*this).current_state.pawns = 0ULL;			// all pawns
-	(*this).current_state.rooks = 0ULL;			// all rooks
-	(*this).current_state.knights = 0ULL;		// all knights
-	(*this).current_state.bishops = 0ULL;		// all bishops
-	(*this).current_state.queens = 0ULL; 		// all queens
-	(*this).current_state.kings = 0ULL;			// all kings
+	(*this).state.white_pcs = 0ULL;		// all white pieces
+	(*this).state.black_pcs = 0ULL;		// all black pieces
+	(*this).state.pawns = 0ULL;			// all pawns
+	(*this).state.rooks = 0ULL;			// all rooks
+	(*this).state.knights = 0ULL;		// all knights
+	(*this).state.bishops = 0ULL;		// all bishops
+	(*this).state.queens = 0ULL; 		// all queens
+	(*this).state.kings = 0ULL;			// all kings
 	}

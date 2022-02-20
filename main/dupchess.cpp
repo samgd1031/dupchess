@@ -64,6 +64,19 @@ int main()
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 
+		// print list of possible moves
+		else if (_stricmp(cmd_string.c_str(), "list_moves") == 0) {
+			std::vector<Move> mlist = engine.getLegalMoves();
+
+			engine.printGameState();
+			std::cout << "Moves for " << ((engine.gameboard.state.whiteToMove) ? "white" : "black") << ":" << std::endl;
+			for (int ii = 0; ii < mlist.size(); ii++) {
+				std::cout << "\tMove " << ii+1 << ": " << mlist[ii].getLongSAN() << std::endl;
+			}
+
+			std::cout << "Waiting for input... (exit to end)" << std::endl;
+		}
+
 		// talk smack
 		else if (_stricmp(cmd_string.c_str(), "trash_talk") == 0) {
 			std::cout << engine.trash_talk() << std::endl;

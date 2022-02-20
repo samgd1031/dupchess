@@ -50,7 +50,7 @@ std::string DupEngine::START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR 
 
 // Game Status Functions //////////////////
 bool DupEngine::whiteToMove() {
-	return (*this).gameboard.current_state.whiteToMove;
+	return (*this).gameboard.state.whiteToMove;
 }
 ///////////////////////////////////////////
 
@@ -69,16 +69,16 @@ std::vector<Move> DupEngine::getLegalMoves() {
 // double pawn pushes
 // captures
 // promotions
+// en passant
 // /////////////////////
-// TODO: en passant
 inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
-	bitboard empty = ~(gameboard.current_state.white_pcs | gameboard.current_state.black_pcs);
+	bitboard empty = ~(gameboard.state.white_pcs | gameboard.state.black_pcs);
 	bitboard single_tgts, dbl_tgts;
-	int color = (gameboard.current_state.whiteToMove) ? 1 : -1;
+	int color = (gameboard.state.whiteToMove) ? 1 : -1;
 	// get a pointer mask to only return pawns of the current color to move
-	bitboard *color_mask = (color == 1) ? &gameboard.current_state.white_pcs : &gameboard.current_state.black_pcs;
+	bitboard *color_mask = (color == 1) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
 	// single pawn push targets are the empty squares on the next file
-	single_tgts = util::genShift((gameboard.current_state.pawns & *color_mask), color * 8) & empty;
+	single_tgts = util::genShift((gameboard.state.pawns & *color_mask), color * 8) & empty;
 
 	// double pawn push targets are the square on the next file after the single target as long as pawn is on file 2 (white) or 7 (black)
 	// single targets will be masked out on file 3 (this means the pawn is on file 2) or file 6 for black (black pawns on file 7)
@@ -87,19 +87,19 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 
 	// pawn attack targets are the squares to the northeast (southwest) and northwest (southeast) for white/black
 	// to avoid A/H file pawns the appropriate rank will be masked out
-	// space must also be occupied (not empty) to be a valid attack target
+	// space must also be occupied by a piece of the opposite color to be a valid attack target
 	bitboard east_mask = (color == 1) ? 0x7F7F7F7F7F7F7F7F : 0xFEFEFEFEFEFEFEFE;
 	bitboard west_mask = (color == 1) ? 0xFEFEFEFEFEFEFEFE : 0x7F7F7F7F7F7F7F7F;
 
-	bitboard east_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & east_mask, color * 9) & ~empty;
-	bitboard west_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & west_mask, color * 7) & ~empty;
+	bitboard east_atk = util::genShift((gameboard.state.pawns & *color_mask) & east_mask, color * 9) & (~empty & ~*color_mask);
+	bitboard west_atk = util::genShift((gameboard.state.pawns & *color_mask) & west_mask, color * 7) & (~empty & ~*color_mask);
 
 
 	// encode single moves and add to move list
 	int movecount = std::_Popcount(single_tgts);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanReverse64(&target_ind, single_tgts);
+		_BitScanForward64(&target_ind, single_tgts);
 		// if pawn makes it to the end add all possible promotion moves
 		if(((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))){
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -116,7 +116,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	movecount = std::_Popcount(dbl_tgts);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanReverse64(&target_ind, dbl_tgts);
+		_BitScanForward64(&target_ind, dbl_tgts);
 		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, false, false, true, 0));
 		dbl_tgts ^= 1ULL << target_ind;
 	}
@@ -125,7 +125,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	movecount = std::_Popcount(east_atk);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanReverse64(&target_ind, east_atk);
+		_BitScanForward64(&target_ind, east_atk);
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -141,7 +141,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	movecount = std::_Popcount(west_atk);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanReverse64(&target_ind, west_atk);
+		_BitScanForward64(&target_ind, west_atk);
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -155,17 +155,17 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 	}
 
 	// check en passant
-	if (gameboard.current_state.PIPI != util::squares::EMPTY_SQ) {
-		bitboard epTarget = 1ULL << (int)gameboard.current_state.PIPI;
+	if (gameboard.state.PIPI != util::squares::EMPTY_SQ) {
+		bitboard epTarget = 1ULL << (int)gameboard.state.PIPI;
 
-		bitboard east_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & east_mask, color * 9) & epTarget;
-		bitboard west_atk = util::genShift((gameboard.current_state.pawns & *color_mask) & west_mask, color * 7) & epTarget;
+		bitboard east_atk = util::genShift((gameboard.state.pawns & *color_mask) & east_mask, color * 9) & epTarget;
+		bitboard west_atk = util::genShift((gameboard.state.pawns & *color_mask) & west_mask, color * 7) & epTarget;
 
 		// encode moves
 		movecount = std::_Popcount(east_atk);
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
-			_BitScanReverse64(&target_ind, east_atk);
+			_BitScanForward64(&target_ind, east_atk);
 			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, true, false, true, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
@@ -173,7 +173,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist) {
 		movecount = std::_Popcount(west_atk);
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
-			_BitScanReverse64(&target_ind, west_atk);
+			_BitScanForward64(&target_ind, west_atk);
 			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, true, false, true, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
@@ -190,7 +190,7 @@ void DupEngine::makeMove() {
 
 	// pick a random move from movelist
 	if (mlist.size() == 0) {
-		printf("%s has no moves!\n", (gameboard.current_state.whiteToMove) ? "White" : "Black");
+		printf("%s has no moves!\n", (gameboard.state.whiteToMove) ? "White" : "Black");
 		return;
 	}
 	Move moveToMake = mlist[std::rand() % mlist.size()];
@@ -206,28 +206,28 @@ void DupEngine::makeMove() {
 	int toSq = moveToMake.getToSquare();
 	
 	// pointer to bitboard for this piece's and enemy's color
-	bitboard* color_mask = (gameboard.current_state.whiteToMove) ? &gameboard.current_state.white_pcs : &gameboard.current_state.black_pcs;
-	bitboard* enemy_mask = (!gameboard.current_state.whiteToMove) ? &gameboard.current_state.white_pcs : &gameboard.current_state.black_pcs;
+	bitboard* color_mask = (gameboard.state.whiteToMove) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
+	bitboard* enemy_mask = (!gameboard.state.whiteToMove) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
 	// pointer to bitboard for this piece's type
 	bitboard* type_mask;
 	switch (pieceID) {
 	case 0:
-		type_mask = &gameboard.current_state.pawns;
+		type_mask = &gameboard.state.pawns;
 		break;
 	case 1:
-		type_mask = &gameboard.current_state.bishops;
+		type_mask = &gameboard.state.bishops;
 		break;
 	case 2:
-		type_mask = &gameboard.current_state.knights;
+		type_mask = &gameboard.state.knights;
 		break;
 	case 3:
-		type_mask = &gameboard.current_state.rooks;
+		type_mask = &gameboard.state.rooks;
 		break;
 	case 4:
-		type_mask = &gameboard.current_state.queens;
+		type_mask = &gameboard.state.queens;
 		break;
 	case 5:
-		type_mask = &gameboard.current_state.kings;
+		type_mask = &gameboard.state.kings;
 		break;
 	default:
 		throw "Invalid piece ID";
@@ -242,7 +242,7 @@ void DupEngine::makeMove() {
 		// if move is en passant, piece to clear is on a different square
 		int indToClear;
 		if(moveToMake.isEnPassant()){
-			indToClear = (gameboard.current_state.whiteToMove) ? toSq - 8 : toSq + 8 ;
+			indToClear = (gameboard.state.whiteToMove) ? toSq - 8 : toSq + 8 ;
 		}
 		else{ // otherwise square to clear is the destination square
 			indToClear = toSq;
@@ -254,11 +254,11 @@ void DupEngine::makeMove() {
 		// for now be lazy and clear all piece types at that index
 		// most will already be zero
 		// this will probably come back to bite me in the ass later
-		gameboard.current_state.pawns &= ~(1ULL << indToClear);
-		gameboard.current_state.bishops &= ~(1ULL << indToClear);
-		gameboard.current_state.knights &= ~(1ULL << indToClear);
-		gameboard.current_state.rooks &= ~(1ULL << indToClear);
-		gameboard.current_state.queens &= ~(1ULL << indToClear);
+		gameboard.state.pawns &= ~(1ULL << indToClear);
+		gameboard.state.bishops &= ~(1ULL << indToClear);
+		gameboard.state.knights &= ~(1ULL << indToClear);
+		gameboard.state.rooks &= ~(1ULL << indToClear);
+		gameboard.state.queens &= ~(1ULL << indToClear);
 
 	}
 
@@ -269,30 +269,30 @@ void DupEngine::makeMove() {
 	// if double pawn push, set en passant target square
 	if (moveToMake.isEnPassant() && !moveToMake.isCapture()) {
 		int epTarget = moveToMake.getUtilValue();
-		gameboard.current_state.PIPI = util::squares(epTarget);
+		gameboard.state.PIPI = util::squares(epTarget);
 	}
 	else { // set en passant target to empty square
-		gameboard.current_state.PIPI = util::squares::EMPTY_SQ;
+		gameboard.state.PIPI = util::squares::EMPTY_SQ;
 	}
 
 	// if promotion, switch the pawn to the appropriate piece
 	if (moveToMake.isPawnPromo()) {
 		uint8_t promoID = moveToMake.getUtilValue();
 		// clear bit from pawn bitboard
-		gameboard.current_state.pawns &= ~(1ULL << toSq);
+		gameboard.state.pawns &= ~(1ULL << toSq);
 		// set bit on appropriate other piece bitboard
 		switch(promoID){
 		case 1: // bishop
-			gameboard.current_state.bishops |= 1ULL << toSq;
+			gameboard.state.bishops |= 1ULL << toSq;
 			break;
 		case 2: // knight
-			gameboard.current_state.knights |= 1ULL << toSq;
+			gameboard.state.knights |= 1ULL << toSq;
 			break;
 		case 3: // rook
-			gameboard.current_state.rooks |= 1ULL << toSq;
+			gameboard.state.rooks |= 1ULL << toSq;
 			break;
 		case 4: // queen
-			gameboard.current_state.queens |= 1ULL << toSq;
+			gameboard.state.queens |= 1ULL << toSq;
 			break;
 		default:
 			throw "invalid piece ID for promotion";
@@ -300,11 +300,11 @@ void DupEngine::makeMove() {
 	}
 	
 	// switch side to move
-	gameboard.current_state.whiteToMove = !gameboard.current_state.whiteToMove;
+	gameboard.state.whiteToMove = !gameboard.state.whiteToMove;
 
 	// increment half/fullmove counters
-	(pieceID != 0) ? gameboard.current_state.halfmove += 1 : gameboard.current_state.halfmove = 0;
-	if (gameboard.current_state.whiteToMove) { gameboard.current_state.fullmove += 1; }
+	(pieceID != 0) ? gameboard.state.halfmove += 1 : gameboard.state.halfmove = 0;
+	if (gameboard.state.whiteToMove) { gameboard.state.fullmove += 1; }
 }
 
 /// <summary>
@@ -318,43 +318,43 @@ void DupEngine::printGameState() {
 		printf("\n%i ", rank);
 		for (int file = (rank - 1) * 8; file < rank * 8; file++) {
 			bitboard ii = 1ULL << file;
-			if (gameboard.current_state.pawns & ii) {
+			if (gameboard.state.pawns & ii) {
 				pieceStr = 'P';
 			}
-			else if (gameboard.current_state.bishops & ii) {
+			else if (gameboard.state.bishops & ii) {
 				pieceStr = 'B';
 			}
-			else if (gameboard.current_state.knights & ii) {
+			else if (gameboard.state.knights & ii) {
 				pieceStr = 'N';
 			}
-			else if (gameboard.current_state.rooks & ii) {
+			else if (gameboard.state.rooks & ii) {
 				pieceStr = 'R';
 			}
-			else if (gameboard.current_state.queens & ii) {
+			else if (gameboard.state.queens & ii) {
 				pieceStr = 'Q';
 			}
-			else if (gameboard.current_state.kings & ii) {
+			else if (gameboard.state.kings & ii) {
 				pieceStr = 'K';
 			}
 			else {
 				pieceStr = '.';
 			}
-			if (gameboard.current_state.black_pcs & ii) { pieceStr = tolower(pieceStr); }
+			if (gameboard.state.black_pcs & ii) { pieceStr = tolower(pieceStr); }
 			printf("%c", pieceStr);
 		}
 	}
 	printf("\n  ABCDEFGH\n\n");
 
 	// print side to move
-	printf("%s to move\n", (gameboard.current_state.whiteToMove) ? "White" : "Black");
+	printf("%s to move\n", (gameboard.state.whiteToMove) ? "White" : "Black");
 
 	// print en passant square
-	printf("En passant target square: %s\n", util::squareStrings[(int)gameboard.current_state.PIPI]);
+	printf("En passant target square: %s\n", util::squareStrings[(int)gameboard.state.PIPI]);
 
 	// print castling rights
 	std::string castleStr;
 	for (int ii = 3; ii >= 0; ii--) {
-		if (gameboard.current_state.castleRights.test(ii)) {
+		if (gameboard.state.castleRights.test(ii)) {
 			castleStr += "1";
 		}
 		else {
@@ -364,6 +364,6 @@ void DupEngine::printGameState() {
 	printf("Castling rights (KQkq): %s\n", castleStr.c_str());
 
 	// print half/full move counters
-	printf("Half move counter: %i\n", gameboard.current_state.halfmove);
-	printf("Full move counter: %i\n", gameboard.current_state.fullmove);
+	printf("Half move counter: %i\n", gameboard.state.halfmove);
+	printf("Full move counter: %i\n", gameboard.state.fullmove);
 }
