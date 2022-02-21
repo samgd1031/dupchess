@@ -62,13 +62,27 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	bitboard* color_mask = (color == 1) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
 
 	std::vector<Move> movelist;
+	// pawns
 	DupEngine::findPawnMoves(movelist, color, color_mask);
+
+	// rooks
 	bitboard rooks_to_move = gameboard.state.rooks & *color_mask;
-	for (int ii = 0; ii < std::_Popcount(rooks_to_move); ii++) {
+	int n_rooks = std::_Popcount(rooks_to_move);
+	for (int ii = 0; ii < n_rooks; ii++) {
 		unsigned long rook_index;
 		_BitScanForward64(&rook_index, rooks_to_move);
 		DupEngine::findRookMoves(movelist, rook_index, color, color_mask);
 		rooks_to_move &= ~(1ULL << rook_index);
+	}
+
+	// bishops
+	bitboard bish_to_move = gameboard.state.bishops & *color_mask;
+	int n_bish = std::_Popcount(bish_to_move);
+	for (int ii = 0; ii < n_bish; ii++) {
+		unsigned long bish_index;
+		_BitScanForward64(&bish_index, bish_to_move);
+		DupEngine::findBishopMoves(movelist, bish_index, color, color_mask);
+		bish_to_move &= ~(1ULL << bish_index);
 	}
 	
 
@@ -230,6 +244,50 @@ inline void DupEngine::findRookMoves(std::vector<Move>& mlist, int sqIndex, int 
 		_BitScanForward64(&target_ind, rook_atks);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, true, false, false, 0));
 		rook_atks ^= 1ULL << target_ind;
+	}
+}
+
+/// <summary>
+/// given pointer to move list, square index, and color info, append to mlist all possible bishop moves
+/// </summary>
+/// <param name="mlist"></param>
+/// <param name="sqIndex"></param>
+/// <param name="color"></param>
+/// <param name="color_mask"></param>
+inline void DupEngine::findBishopMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask) {
+	int rank = sqIndex / 8;
+	int file = sqIndex % 8;
+
+	bitboard occ = (gameboard.state.white_pcs | gameboard.state.black_pcs);
+
+	// moves along diagonal
+	bitboard diag = util::hyp_quint(occ, util::diagMasks[(rank - file) & 15], sqIndex);
+
+	// moves along anti diagonal
+	bitboard anti_diag = util::hyp_quint(occ, util::adiagMasks[(rank + file) ^ 7], sqIndex);
+
+	// get quiescent moves
+	bitboard bish_moves = (diag | anti_diag) & ~occ;
+
+	// get attacks (collisions with pieces of opposite color)
+	bitboard bish_atks = (diag | anti_diag) & (occ & ~*color_mask);
+
+	// encode moves
+	int n_moves = std::_Popcount(bish_moves);
+	for (int ii = 0; ii < n_moves; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, bish_moves);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, false, false, false, 0));
+		bish_moves ^= 1ULL << target_ind;
+	}
+
+	// encode captures
+	n_moves = std::_Popcount(bish_atks);
+	for (int ii = 0; ii < n_moves; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, bish_atks);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, true, false, false, 0));
+		bish_atks ^= 1ULL << target_ind;
 	}
 }
 
