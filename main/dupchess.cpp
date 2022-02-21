@@ -10,7 +10,6 @@ int main()
 {
 	std::string cmd_string;
 	DupEngine engine = DupEngine();
-	engine.gameboard.setBoardFromFEN("8/4n3/8/2B5/8/8/8/8 w - - 0 1");
 
 	std::cout << "    ____              ________                   " << std::endl;
 	std::cout << "   / __ \\__  ______  / ____/ /_  ___  __________ " << std::endl;
