@@ -96,3 +96,29 @@ int Move::isEnPassant() { return (bits & epMask) >> epShift; }
 
 // return value in utility bits
 uint8_t Move::getUtilValue() { return (bits & utilMask) >> utilShift; }
+
+// change piece ID (used for queen move generation, may be a dumb thing to do i dont know)
+void Move::setPieceID(util::Piece newID) {
+	// clear current pieceID
+	bits &= ~(pieceMask);
+	switch (newID) {
+	case util::Piece::PAWN:
+		bits |= 0x00000000 << pieceShift;
+		break;
+	case util::Piece::BISHOP:
+		bits |= 0x00000001 << pieceShift;
+		break;
+	case util::Piece::KNIGHT:
+		bits |= 0x00000002 << pieceShift;
+		break;
+	case util::Piece::ROOK:
+		bits |= 0x00000003 << pieceShift;
+		break;
+	case util::Piece::QUEEN:
+		bits |= 0x00000004 << pieceShift;
+		break;
+	case util::Piece::KING:
+		bits |= 0x00000005 << pieceShift;
+		break;
+	}
+}

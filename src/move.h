@@ -21,6 +21,9 @@ public:
 	int isEnPassant();
 	uint8_t getUtilValue();
 
+	// change piece ID (used for queen move generation, may be a dumb thing to do i dont know)
+	void setPieceID(util::Piece newID);
+
 private:
 	uint32_t bits; // encoded move
 

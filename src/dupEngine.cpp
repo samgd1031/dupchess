@@ -79,12 +79,21 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	bitboard bishop_to_move = gameboard.state.bishops & *color_mask;
 	int n_bishop = std::_Popcount(bishop_to_move);
 	for (int ii = 0; ii < n_bishop; ii++) {
-		unsigned long bish_index;
-		_BitScanForward64(&bish_index, bishop_to_move);
-		DupEngine::findBishopMoves(movelist, bish_index, color, color_mask);
-		bishop_to_move &= ~(1ULL << bish_index);
+		unsigned long bishop_index;
+		_BitScanForward64(&bishop_index, bishop_to_move);
+		DupEngine::findBishopMoves(movelist, bishop_index, color, color_mask);
+		bishop_to_move &= ~(1ULL << bishop_index);
 	}
 	
+	// queens
+	bitboard queens_to_move = gameboard.state.queens & *color_mask;
+	int n_queen = std::_Popcount(queens_to_move);
+	for (int ii = 0; ii < n_queen; ii++) {
+		unsigned long queen_index;
+		_BitScanForward64(&queen_index, queens_to_move);
+		DupEngine::findQueenMoves(movelist, queen_index, color, color_mask);
+		queens_to_move &= ~(1ULL << queen_index);
+	}
 
 	return movelist;
 }
@@ -289,6 +298,29 @@ inline void DupEngine::findBishopMoves(std::vector<Move>& mlist, int sqIndex, in
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, true, false, false, 0));
 		bish_atks ^= 1ULL << target_ind;
 	}
+}
+
+/// <summary>
+/// Find all possible queen moves (union of bishop and rook moves from a square)
+/// </summary>
+/// <param name="mlist"></param>
+/// <param name="sqIndex"></param>
+/// <param name="color"></param>
+/// <param name="color_mask"></param>
+void DupEngine::findQueenMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask) {
+	std::vector<Move> temp_mlist;
+
+	// find rook and bishop moves
+	findRookMoves(temp_mlist, sqIndex, color, color_mask);
+	findBishopMoves(temp_mlist, sqIndex, color, color_mask);
+
+	// set piece ID to queen
+	for (int ii = 0; ii < temp_mlist.size(); ii++) {
+		temp_mlist[ii].setPieceID(util::Piece::QUEEN);
+	}
+
+	// append these moves to the move list
+	std::move(temp_mlist.begin(), temp_mlist.end(), std::back_inserter(mlist));
 }
 
 /// <makeMove>
