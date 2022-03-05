@@ -15,7 +15,7 @@ public:
 	// get information about the move
 	int getFromSquare();
 	int getToSquare();
-	int getPieceID();
+	util::Piece getPieceID();
 	int isCapture();
 	int isPawnPromo();
 	int isEnPassant();

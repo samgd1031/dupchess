@@ -76,13 +76,13 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	}
 
 	// bishops
-	bitboard bish_to_move = gameboard.state.bishops & *color_mask;
-	int n_bish = std::_Popcount(bish_to_move);
-	for (int ii = 0; ii < n_bish; ii++) {
+	bitboard bishop_to_move = gameboard.state.bishops & *color_mask;
+	int n_bishop = std::_Popcount(bishop_to_move);
+	for (int ii = 0; ii < n_bishop; ii++) {
 		unsigned long bish_index;
-		_BitScanForward64(&bish_index, bish_to_move);
+		_BitScanForward64(&bish_index, bishop_to_move);
 		DupEngine::findBishopMoves(movelist, bish_index, color, color_mask);
-		bish_to_move &= ~(1ULL << bish_index);
+		bishop_to_move &= ~(1ULL << bish_index);
 	}
 	
 
@@ -124,7 +124,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, single_tgts);
 		// if pawn makes it to the end add all possible promotion moves
-		if(((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))){
+		if(((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))){
 			for (uint8_t jj = 1; jj < 5; jj++) {
 				mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, util::Piece::PAWN, false, true, false, jj));
 			}
@@ -150,7 +150,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, east_atk);
 		// if pawn makes it to the end add all possible promotion moves
-		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
+		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
 				mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, jj));
 			}
@@ -166,7 +166,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, west_atk);
 		// if pawn makes it to the end add all possible promotion moves
-		if (((color == 1) & (target_ind / 8 == 7)) | ((color == -1) & (target_ind / 8 == 0))) {
+		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
 				mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, jj));
 			}
@@ -312,7 +312,7 @@ void DupEngine::makeMove() {
 	mHistory.push_back(moveToMake);
 
 	// get piece that's moving, origin and destination squares
-	int pieceID = moveToMake.getPieceID();
+	util::Piece pieceID = moveToMake.getPieceID();
 	int fromSq = moveToMake.getFromSquare();
 	int toSq = moveToMake.getToSquare();
 	
@@ -322,22 +322,22 @@ void DupEngine::makeMove() {
 	// pointer to bitboard for this piece's type
 	bitboard* type_mask;
 	switch (pieceID) {
-	case 0:
+	case util::Piece::PAWN:
 		type_mask = &gameboard.state.pawns;
 		break;
-	case 1:
+	case util::Piece::BISHOP:
 		type_mask = &gameboard.state.bishops;
 		break;
-	case 2:
+	case util::Piece::KNIGHT:
 		type_mask = &gameboard.state.knights;
 		break;
-	case 3:
+	case util::Piece::ROOK:
 		type_mask = &gameboard.state.rooks;
 		break;
-	case 4:
+	case util::Piece::QUEEN:
 		type_mask = &gameboard.state.queens;
 		break;
-	case 5:
+	case util::Piece::KING:
 		type_mask = &gameboard.state.kings;
 		break;
 	default:
@@ -409,12 +409,53 @@ void DupEngine::makeMove() {
 			throw "invalid piece ID for promotion";
 		}
 	}
+
+	// handle castling rights if rook or king moves
+	if (moveToMake.getPieceID() == util::Piece::ROOK) {
+		if (gameboard.state.whiteToMove) {
+			switch (fromSq)
+			{
+			case 0: // white queenside
+				gameboard.state.castleRights.reset(2);
+				break;
+			case 7: // white kingside
+				gameboard.state.castleRights.reset(3);
+				break;
+			default: // do nothing
+				break;
+			}
+		}
+		else {
+			switch (fromSq)
+			{
+			case 56: // black queenside
+				gameboard.state.castleRights.reset(0);
+				break;
+			case 63: // black kingside
+				gameboard.state.castleRights.reset(1);
+				break;
+			default: // do nothing
+				break;
+			}
+		}
+	}
+	else if(moveToMake.getPieceID() == util::Piece::KING){
+		if (gameboard.state.whiteToMove) {
+			gameboard.state.castleRights.reset(2);
+			gameboard.state.castleRights.reset(3);
+		}
+		else {
+			gameboard.state.castleRights.reset(0);
+			gameboard.state.castleRights.reset(1);
+		}
+
+	}
 	
 	// switch side to move
 	gameboard.state.whiteToMove = !gameboard.state.whiteToMove;
 
 	// increment half/fullmove counters
-	(pieceID != 0) ? gameboard.state.halfmove += 1 : gameboard.state.halfmove = 0;
+	(pieceID != util::Piece::PAWN) ? gameboard.state.halfmove += 1 : gameboard.state.halfmove = 0;
 	if (gameboard.state.whiteToMove) { gameboard.state.fullmove += 1; }
 }
 

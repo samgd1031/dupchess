@@ -83,7 +83,7 @@ int Move::getFromSquare() { return (bits & fromMask); }
 int Move::getToSquare() { return (bits & toMask) >> toShift; }
 
 // return piece ID
-int Move::getPieceID() { return (bits & pieceMask) >> pieceShift; }
+util::Piece Move::getPieceID() { return (util::Piece)((bits& pieceMask) >> pieceShift); }
 
 // return 1 if this move is a capture, 0 otherwise
 int Move::isCapture() { return (bits & capMask) >> capShift; }
