@@ -16,9 +16,9 @@ public:
 	int getFromSquare();
 	int getToSquare();
 	util::Piece getPieceID();
-	int isCapture();
-	int isPawnPromo();
-	int isEnPassant();
+	bool isCapture();
+	bool isPawnPromo();
+	bool isEnPassant();
 	uint8_t getUtilValue();
 
 	// change piece ID (used for queen move generation, may be a dumb thing to do i dont know)
