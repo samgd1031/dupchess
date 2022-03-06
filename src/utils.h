@@ -92,6 +92,10 @@ namespace util {
 		0x204081020408000
 	};
 
+	// mask for king attack (centered around B2 square, can be shifted)
+	static const bitboard kingAttack = 0x0000000000070507;
+	static const int kingAttackIndex = 9; // reference index to shift by
+
 
 	static const char* squareStrings[65]{
 		"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",

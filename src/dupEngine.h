@@ -50,6 +50,7 @@ private:
 	inline void findRookMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask);
 	inline void findBishopMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask);
 	inline void findQueenMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask);
+	inline void findKingMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask);
 
 	
 };

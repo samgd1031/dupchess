@@ -95,6 +95,14 @@ std::vector<Move> DupEngine::getLegalMoves() {
 		queens_to_move &= ~(1ULL << queen_index);
 	}
 
+	// king
+	bitboard king_to_move = gameboard.state.kings & *color_mask;
+	unsigned long king_index = 0;
+	_BitScanForward64(&king_index, king_to_move);
+	DupEngine::findKingMoves(movelist, king_index, color, color_mask);
+
+	//TODO: Castling
+
 	return movelist;
 }
 
@@ -276,27 +284,27 @@ inline void DupEngine::findBishopMoves(std::vector<Move>& mlist, int sqIndex, in
 	bitboard anti_diag = util::hyp_quint(occ, util::adiagMasks[(rank + file) ^ 7], sqIndex);
 
 	// get quiescent moves
-	bitboard bish_moves = (diag | anti_diag) & ~occ;
+	bitboard bishop_moves = (diag | anti_diag) & ~occ;
 
 	// get attacks (collisions with pieces of opposite color)
-	bitboard bish_atks = (diag | anti_diag) & (occ & ~*color_mask);
+	bitboard bishop_atks = (diag | anti_diag) & (occ & ~*color_mask);
 
 	// encode moves
-	int n_moves = std::_Popcount(bish_moves);
+	int n_moves = std::_Popcount(bishop_moves);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, bish_moves);
+		_BitScanForward64(&target_ind, bishop_moves);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, false, false, false, 0));
-		bish_moves ^= 1ULL << target_ind;
+		bishop_moves ^= 1ULL << target_ind;
 	}
 
 	// encode captures
-	n_moves = std::_Popcount(bish_atks);
+	n_moves = std::_Popcount(bishop_atks);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, bish_atks);
+		_BitScanForward64(&target_ind, bishop_atks);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, true, false, false, 0));
-		bish_atks ^= 1ULL << target_ind;
+		bishop_atks ^= 1ULL << target_ind;
 	}
 }
 
@@ -307,7 +315,7 @@ inline void DupEngine::findBishopMoves(std::vector<Move>& mlist, int sqIndex, in
 /// <param name="sqIndex"></param>
 /// <param name="color"></param>
 /// <param name="color_mask"></param>
-void DupEngine::findQueenMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask) {
+inline void DupEngine::findQueenMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask) {
 	std::vector<Move> temp_mlist;
 
 	// find rook and bishop moves
@@ -321,6 +329,65 @@ void DupEngine::findQueenMoves(std::vector<Move>& mlist, int sqIndex, int color,
 
 	// append these moves to the move list
 	std::move(temp_mlist.begin(), temp_mlist.end(), std::back_inserter(mlist));
+}
+
+/// <summary>
+/// Find all possible king moves
+/// </summary>
+/// <param name="mlist"></param>
+/// <param name="sqIndex"></param>
+/// <param name="color"></param>
+/// <param name="color_mask"></param>
+inline void DupEngine::findKingMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask){
+	// get bitboard of friendly & enemy pieces
+	bitboard friends = (gameboard.state.white_pcs | gameboard.state.black_pcs) & *color_mask;
+	bitboard enemies = (gameboard.state.white_pcs | gameboard.state.black_pcs) ^ friends;
+
+	// add squares around enemy king to "friends" so that it will not try to enter it
+	unsigned long enemy_king_ind = 0;
+	_BitScanForward64(&enemy_king_ind, (gameboard.state.kings & enemies));
+	bitboard enemy_king = util::genShift(util::kingAttack, (enemy_king_ind - util::kingAttackIndex));
+	if (enemy_king_ind % 8 == 0) { // A file
+		enemy_king &= ~(util::fileMasks[7]); // mask off H file
+	}
+	else if (enemy_king_ind % 8 == 7) { // H file
+		enemy_king &= ~(util::fileMasks[0]); // mask off A file
+	}
+	friends |= enemy_king;
+
+	// get bitboard of all neighboring squares, masking off A/H files as necessary
+	// bitwise shift does not allow for overflow on ranks 1/8 so no masking is necessary for ranks
+	bitboard king_targets = util::genShift(util::kingAttack, (sqIndex - util::kingAttackIndex));
+	if (sqIndex % 8 == 0) { // A file
+		king_targets &= ~(util::fileMasks[7]); // mask off H file
+	}
+	else if (sqIndex % 8 == 7) { // H file
+		king_targets &= ~(util::fileMasks[0]); // mask off A file
+	}
+	// mask out friends
+	king_targets &= ~(friends);
+
+	// split into move and capture bitboards
+	bitboard king_captures = king_targets & enemies;
+	bitboard king_moves = king_targets & ~(king_captures);
+
+	// encode moves
+	int n_moves = std::_Popcount(king_moves);
+	for (int ii = 0; ii < n_moves; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, king_moves);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, false, false, false, 0));
+		king_moves ^= 1ULL << target_ind;
+	}
+
+	// encode moves
+	int n_caps = std::_Popcount(king_captures);
+	for (int ii = 0; ii < n_caps; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, king_captures);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, true, false, false, 0));
+		king_captures ^= 1ULL << target_ind;
+	}
 }
 
 /// <makeMove>
@@ -492,7 +559,7 @@ void DupEngine::makeMove() {
 }
 
 /// <summary>
-/// Print a representation of the game state
+/// Print a representation of the game state to the console
 /// </summary>
 void DupEngine::printGameState() {
 	// first, print the board
