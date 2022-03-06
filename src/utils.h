@@ -96,6 +96,11 @@ namespace util {
 	static const bitboard kingAttack = 0x0000000000070507;
 	static const int kingAttackIndex = 9; // reference index to shift by
 
+	// mask for knight attack
+	// how does the horsie move?
+	static const bitboard knight_attack = 0x0000000000A1100110A;
+	static const int knight_attack_index = 18;
+
 
 	static const char* squareStrings[65]{
 		"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
