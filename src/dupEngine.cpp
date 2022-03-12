@@ -84,6 +84,16 @@ std::vector<Move> DupEngine::getLegalMoves() {
 		DupEngine::findBishopMoves(movelist, bishop_index, color, color_mask);
 		bishop_to_move &= ~(1ULL << bishop_index);
 	}
+
+	//knights
+	bitboard knight_to_move = gameboard.state.knights & *color_mask;
+	int n_knight = std::_Popcount(knight_to_move);
+	for (int ii = 0; ii < n_knight; ii++) {
+		unsigned long knight_index;
+		_BitScanForward64(&knight_index, knight_to_move);
+		DupEngine::findKnightMoves(movelist, knight_index, color, color_mask);
+		knight_to_move &= ~(1ULL << knight_index);
+	}
 	
 	// queens
 	bitboard queens_to_move = gameboard.state.queens & *color_mask;
@@ -380,13 +390,60 @@ inline void DupEngine::findKingMoves(std::vector<Move>& mlist, int sqIndex, int 
 		king_moves ^= 1ULL << target_ind;
 	}
 
-	// encode moves
+	// encode captures
 	int n_caps = std::_Popcount(king_captures);
 	for (int ii = 0; ii < n_caps; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, king_captures);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, true, false, false, 0));
 		king_captures ^= 1ULL << target_ind;
+	}
+}
+
+/// <summary>
+/// Find all possible knight moves
+/// </summary>
+/// <param name="mlist"></param>
+/// <param name="sqIndex"></param>
+/// <param name="color"></param>
+/// <param name="color_mask"></param>
+inline void DupEngine::findKnightMoves(std::vector<Move>& mlist, int sqIndex, int color, bitboard* color_mask) {
+	// get bitboard of friendly & enemy pieces
+	bitboard friends = (gameboard.state.white_pcs | gameboard.state.black_pcs) & *color_mask;
+	bitboard enemies = (gameboard.state.white_pcs | gameboard.state.black_pcs) ^ friends;
+
+	// get bitboard of all neighboring squares, masking off AB/GH files as necessary
+	// bitwise shift does not allow for overflow on ranks 1/8 so no masking is necessary for ranks
+	bitboard knight_targets = util::genShift(util::knight_attack, (sqIndex - util::knight_attack_index));
+	if (sqIndex % 8 == 0 || sqIndex % 8 == 1) { // A or B file
+		knight_targets &= ~(util::fileMasks[6] | util::fileMasks[7]); // mask off G & H file
+	}
+	else if (sqIndex % 8 == 7 || sqIndex % 8 == 6) { // G or H file
+		knight_targets &= ~(util::fileMasks[0] | util::fileMasks[1]); // mask off A & B file
+	}
+	// mask out friends
+	knight_targets &= ~(friends);
+
+	// split into move and capture bitboards
+	bitboard knight_captures = knight_targets & enemies;
+	bitboard knight_moves = knight_targets & ~(knight_captures);
+
+	// encode moves
+	int n_moves = std::_Popcount(knight_moves);
+	for (int ii = 0; ii < n_moves; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, knight_moves);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, false, false, false, 0));
+		knight_moves ^= 1ULL << target_ind;
+	}
+
+	// encode captures
+	int n_caps = std::_Popcount(knight_captures);
+	for (int ii = 0; ii < n_caps; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, knight_captures);
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, true, false, false, 0));
+		knight_captures ^= 1ULL << target_ind;
 	}
 }
 
