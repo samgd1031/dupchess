@@ -46,11 +46,11 @@ int main()
 		// generic test function
 		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
 			std::cout << "testing a thing" << std::endl;
-			
-			engine.printGameState();
 			int max_moves = 1;
 			for (int ii = 0; ii < max_moves; ii++) {
-				engine.makeMove();
+				engine.chooseMove();
+				std::cout << "making move: " << engine.chosen_move.getLongSAN() << std::endl;
+				engine.makeMove(engine.chosen_move);
 				engine.printGameState();
 			}
 			

@@ -2,11 +2,15 @@
 
 
 // Constructor
+Move::Move() {
+	bits = 0;
+}
+
 Move::Move(uint32_t data) {
 	bits = data;
 }
 
-Move::Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool isPromo, bool isEP, uint8_t util_bits) {
+Move::Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool isPromo, bool isEP, bool isCastle, uint8_t util_bits) {
 	bits = 0;
 	bits = fromInd;
 	bits |= toInd << toShift;
@@ -29,6 +33,8 @@ Move::Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool i
 	case util::Piece::KING:
 		bits |= 0x00000005 << pieceShift;
 		break;
+	default:
+		break;
 	}
 	if (isCap) bits |= capMask;
 	if (isPromo) bits |= promoMask;
@@ -43,6 +49,8 @@ Move::Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool i
 		}
 	}
 	bits |= util_bits << utilShift;
+
+	if (isCastle) bits |= castleMask;
 }
 
 
@@ -50,6 +58,17 @@ Move::Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool i
 std::string Move::getLongSAN() {
 	std::string san = "";
 	
+	if (isCastle()) {
+		switch(getUtilValue()) {
+		case 1: // kingside castle
+			return "O-O";
+		case 2:
+			return "O-O-O";
+		default: // should never be reached
+			return "you messed up, neither king nor queenside castle";
+		}
+	}
+
 	// if not a pawn put the piece abbreviation
 	if ((bits & pieceMask) >> pieceShift > 0) {
 		san += util::pieceAbbr[(bits & pieceMask) >> pieceShift];
@@ -93,6 +112,9 @@ bool Move::isPawnPromo() { return (bits & promoMask) >> promoShift; }
 
 // return 1 if this move is a pawn promotion, 0 otherwise
 bool Move::isEnPassant() { return (bits & epMask) >> epShift; }
+
+// return true if move is a castle
+bool Move::isCastle() { return (bits & castleMask) >> castleShift; }
 
 // return value in utility bits
 uint8_t Move::getUtilValue() { return (bits & utilMask) >> utilShift; }

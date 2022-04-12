@@ -9,6 +9,7 @@ DupEngine::DupEngine(void) {
 	boardHistory.reserve(40);
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
 	srand((int)time(NULL));  // set random generator seed
+	chosen_move = Move();
 }
 ///////////////////////////////////////////
 
@@ -61,7 +62,8 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	// get a pointer mask to only return pieces of the current color to move
 	bitboard* color_mask = (color == 1) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
 
-	std::vector<Move> movelist;
+	std::vector<Move> movelist;  // will hold all the possible moves
+
 	// pawns
 	DupEngine::findPawnMoves(movelist, color, color_mask);
 
@@ -111,12 +113,18 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	_BitScanForward64(&king_index, king_to_move);
 	DupEngine::findKingMoves(movelist, king_index, color, color_mask);
 
-	//TODO: Castling
+	//Castling
+	bool can_kingside = (color == 1) ? (bool)gameboard.state.castleRights.test(3) : (bool)gameboard.state.castleRights.test(1);
+	bool can_queenside = (color == 1) ? (bool)gameboard.state.castleRights.test(2) : (bool)gameboard.state.castleRights.test(0);
+	DupEngine::findCastles(movelist, color, color_mask, can_kingside, can_queenside);
+
+	//TODO: remove moves that would leave the king in check
+	
 
 	return movelist;
 }
 
-// return a move list of all legal pawn moves
+// return a move list of all possible pawn moves
 // currently does:
 // single pawn pushes
 // double pawn pushes
@@ -153,11 +161,11 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		// if pawn makes it to the end add all possible promotion moves
 		if(((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))){
 			for (uint8_t jj = 1; jj < 5; jj++) {
-				mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, util::Piece::PAWN, false, true, false, jj));
+				mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, util::Piece::PAWN, false, true, false, false, jj));
 			}
 		}
 		else{ // no promotion
-			mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, util::Piece::PAWN, false, false, false, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 8 * color), (uint32_t)target_ind, util::Piece::PAWN, false, false, false, false, 0));
 		}
 		single_tgts ^= 1ULL << target_ind;
 	}
@@ -167,7 +175,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, dbl_tgts);
-		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, util::Piece::PAWN, false, false, true, 0));
+		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, util::Piece::PAWN, false, false, true, false, 0));
 		dbl_tgts ^= 1ULL << target_ind;
 	}
 
@@ -179,11 +187,11 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
-				mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, jj));
+				mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, false, jj));
 			}
 		}
 		else{
-			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, false, 0));
 		}
 		east_atk ^= 1ULL << target_ind;
 	}
@@ -195,11 +203,11 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
-				mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, jj));
+				mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, false, jj));
 			}
 		}
 		else{
-			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, false, 0));
 		}
 		west_atk ^= 1ULL << target_ind;
 	}
@@ -216,7 +224,7 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
 			_BitScanForward64(&target_ind, east_atk);
-			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, false, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
 
@@ -224,9 +232,63 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
 			_BitScanForward64(&target_ind, west_atk);
-			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, 0));
+			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, false, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
+	}
+}
+
+
+/// <summary>
+/// find the potential pawn attacks assuming there is a pawn of the specified color at sq_index
+/// This function is used during castling checks to make sure no pawns are attacking any of the castling squares
+/// </summary>
+/// <param name="mlist"></param>
+/// <param name="sq_index"></param>
+/// <param name="color"></param>
+/// <param name="color_mask"></param>
+inline void DupEngine::findPawnAttacks(std::vector<Move>& mlist, int sq_index, int color, bitboard* color_mask) {
+	bitboard empty = ~(gameboard.state.white_pcs | gameboard.state.black_pcs);
+	// pawn attack targets are the squares to the northeast (southwest) and northwest (southeast) for white/black
+	// to avoid A/H file pawns the appropriate rank will be masked out
+	// space must also be occupied by a piece of the opposite color to be a valid attack target
+	bitboard east_mask = (color == 1) ? 0x7F7F7F7F7F7F7F7F : 0xFEFEFEFEFEFEFEFE;
+	bitboard west_mask = (color == 1) ? 0xFEFEFEFEFEFEFEFE : 0x7F7F7F7F7F7F7F7F;
+
+	bitboard east_atk = util::genShift((1ULL << sq_index) & east_mask, color * 9) & (~empty & ~*color_mask);
+	bitboard west_atk = util::genShift((1ULL << sq_index) & west_mask, color * 7) & (~empty & ~*color_mask);
+
+	// encode captures and add to move list
+	int movecount = std::_Popcount(east_atk);
+	for (int ii = 0; ii < movecount; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, east_atk);
+		// if pawn makes it to the end add all possible promotion moves
+		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
+			for (uint8_t jj = 1; jj < 5; jj++) {
+				mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, false, jj));
+			}
+		}
+		else {
+			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, false, 0));
+		}
+		east_atk ^= 1ULL << target_ind;
+	}
+
+	movecount = std::_Popcount(west_atk);
+	for (int ii = 0; ii < movecount; ii++) {
+		unsigned long target_ind;
+		_BitScanForward64(&target_ind, west_atk);
+		// if pawn makes it to the end add all possible promotion moves
+		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
+			for (uint8_t jj = 1; jj < 5; jj++) {
+				mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, true, false, false, jj));
+			}
+		}
+		else {
+			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, false, false, 0));
+		}
+		west_atk ^= 1ULL << target_ind;
 	}
 }
 
@@ -260,7 +322,7 @@ inline void DupEngine::findRookMoves(std::vector<Move>& mlist, int sqIndex, int 
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, rook_moves);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, false, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, false, false, false, false, 0));
 		rook_moves ^= 1ULL << target_ind;
 	}
 
@@ -269,7 +331,7 @@ inline void DupEngine::findRookMoves(std::vector<Move>& mlist, int sqIndex, int 
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, rook_atks);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, true, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, true, false, false, false, 0));
 		rook_atks ^= 1ULL << target_ind;
 	}
 }
@@ -304,7 +366,7 @@ inline void DupEngine::findBishopMoves(std::vector<Move>& mlist, int sqIndex, in
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, bishop_moves);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, false, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, false, false, false, false, 0));
 		bishop_moves ^= 1ULL << target_ind;
 	}
 
@@ -313,7 +375,7 @@ inline void DupEngine::findBishopMoves(std::vector<Move>& mlist, int sqIndex, in
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, bishop_atks);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, true, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, true, false, false, false, 0));
 		bishop_atks ^= 1ULL << target_ind;
 	}
 }
@@ -386,7 +448,7 @@ inline void DupEngine::findKingMoves(std::vector<Move>& mlist, int sqIndex, int 
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, king_moves);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, false, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, false, false, false, false, 0));
 		king_moves ^= 1ULL << target_ind;
 	}
 
@@ -395,7 +457,7 @@ inline void DupEngine::findKingMoves(std::vector<Move>& mlist, int sqIndex, int 
 	for (int ii = 0; ii < n_caps; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, king_captures);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, true, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, true, false, false, false, 0));
 		king_captures ^= 1ULL << target_ind;
 	}
 }
@@ -433,7 +495,7 @@ inline void DupEngine::findKnightMoves(std::vector<Move>& mlist, int sqIndex, in
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, knight_moves);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, false, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, false, false, false, false, 0));
 		knight_moves ^= 1ULL << target_ind;
 	}
 
@@ -442,16 +504,90 @@ inline void DupEngine::findKnightMoves(std::vector<Move>& mlist, int sqIndex, in
 	for (int ii = 0; ii < n_caps; ii++) {
 		unsigned long target_ind;
 		_BitScanForward64(&target_ind, knight_captures);
-		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, true, false, false, 0));
+		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, true, false, false, false, 0));
 		knight_captures ^= 1ULL << target_ind;
 	}
 }
 
-/// <makeMove>
-/// Take the current list of moves and make one
-/// for now will be a random move, eventually some smart eval stuff will need to happen
-/// </makeMove>
-void DupEngine::makeMove() {
+/// <summary>
+/// 
+/// </summary>
+/// <param name="mlist"></param>
+/// <param name="color"></param>
+/// <param name="color_mask"></param>
+/// <param name="can_kingside"></param>
+/// <param name="can_queenside"></param>
+inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard* color_mask, bool can_kingside, bool can_queenside){
+	bitboard empty = ~(gameboard.state.white_pcs | gameboard.state.black_pcs);
+	
+	// kingside castle
+	if (can_kingside) {
+		bitboard kingside_mask = (color == 1) ? (3 * 1ULL << 5) : (3 * 1ULL << 61);
+		// first, check squares between king and rook are empty
+		if((empty & kingside_mask) == kingside_mask){
+			// check king and squares in between for attacks
+			bool safe_to_castle = true;
+			util::squares squares_to_check[3];
+			if (color == 1) {
+				squares_to_check[0] = util::squares::E1;
+				squares_to_check[1] = util::squares::F1;
+				squares_to_check[2] = util::squares::G1;
+			}
+			else {
+				squares_to_check[0] = util::squares::E8;
+				squares_to_check[1] = util::squares::F8;
+				squares_to_check[2] = util::squares::G8;
+			}
+			for (int ii = 0; ii < 3; ii++) {
+				int num_attackers = is_attacked((int)squares_to_check[ii], color, color_mask);
+				if (num_attackers > 0) {
+					safe_to_castle = false;
+					break;
+				}
+			}
+			
+			if (safe_to_castle) {
+				mlist.push_back(Move((int)util::squares::EMPTY_SQ, (int)util::squares::EMPTY_SQ, util::Piece::KING, false, false, false, true, 1));
+			}	
+		}
+	}
+	
+	if (can_queenside) {
+		bitboard queenside_mask = (color == 1) ? (7 * 1ULL << 1) : (7 * 1ULL << 57);
+		// first, check squares between king and rook are empty
+		if ((empty & queenside_mask) == queenside_mask) {
+			// check king and squares in between for attacks
+			bool safe_to_castle = true;
+			util::squares squares_to_check[3];
+			if (color == 1) {
+				squares_to_check[0] = util::squares::E1;
+				squares_to_check[1] = util::squares::D1;
+				squares_to_check[2] = util::squares::C1;
+			}
+			else {
+				squares_to_check[0] = util::squares::E8;
+				squares_to_check[1] = util::squares::D8;
+				squares_to_check[2] = util::squares::C8;
+			}
+			for (int ii = 0; ii < 3; ii++) {
+				int num_attackers = is_attacked((int)squares_to_check[ii], color, color_mask);
+				if (num_attackers > 0) {
+					safe_to_castle = false;
+					break;
+				}
+			}
+
+			if (safe_to_castle) {
+				mlist.push_back(Move((int)util::squares::EMPTY_SQ, (int)util::squares::EMPTY_SQ, util::Piece::KING, false, false, false, true, 2));
+			}
+		}
+	}
+}
+
+/// <summary>
+/// 
+/// </summary>
+void DupEngine::chooseMove() {
 	// get list of all legal moves
 	mlist = getLegalMoves();
 
@@ -460,114 +596,164 @@ void DupEngine::makeMove() {
 		printf("%s has no moves!\n", (gameboard.state.whiteToMove) ? "White" : "Black");
 		return;
 	}
-	Move moveToMake = mlist[std::rand() % mlist.size()];
-	printf("Making Move: %s\n", moveToMake.getLongSAN().c_str());
+	chosen_move = mlist[std::rand() % mlist.size()];
+}
+
+
+/// <makeMove>
+/// Take the current list of moves and make one
+/// for now will be a random move, eventually some smart eval stuff will need to happen
+/// </makeMove>
+void DupEngine::makeMove(Move moveToMake) {
 
 	// process the move and update game state accordingly
 	boardHistory.push_back(gameboard); // save state to history before making changes
-	mHistory.push_back(moveToMake);
-
-	// get piece that's moving, origin and destination squares
 	util::Piece pieceID = moveToMake.getPieceID();
+	int color = (gameboard.state.whiteToMove) ? 1 : -1;
+	// get piece that's moving, origin and destination squares
 	int fromSq = moveToMake.getFromSquare();
 	int toSq = moveToMake.getToSquare();
-	
-	// pointer to bitboard for this piece's and enemy's color
-	bitboard* color_mask = (gameboard.state.whiteToMove) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
-	bitboard* enemy_mask = (!gameboard.state.whiteToMove) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
-	// pointer to bitboard for this piece's type
-	bitboard* type_mask;
-	switch (pieceID) {
-	case util::Piece::PAWN:
-		type_mask = &gameboard.state.pawns;
-		break;
-	case util::Piece::BISHOP:
-		type_mask = &gameboard.state.bishops;
-		break;
-	case util::Piece::KNIGHT:
-		type_mask = &gameboard.state.knights;
-		break;
-	case util::Piece::ROOK:
-		type_mask = &gameboard.state.rooks;
-		break;
-	case util::Piece::QUEEN:
-		type_mask = &gameboard.state.queens;
-		break;
-	case util::Piece::KING:
-		type_mask = &gameboard.state.kings;
-		break;
-	default:
-		throw "Invalid piece ID";
-	}
+	mHistory.push_back(moveToMake);
 
-	// clear bit for piece type/color on from square
-	*color_mask &= ~(1ULL << fromSq);
-	*type_mask &= ~(1ULL << fromSq);
+	// handle castles differently since two pieces move
+	if (moveToMake.isCastle()) {
+		bitboard& friends = (color == 1) ? gameboard.state.white_pcs : gameboard.state.black_pcs;
+		int king_origin = (int)util::squares::EMPTY_SQ;
+		int king_dest = (int)util::squares::EMPTY_SQ;
+		int rook_origin = (int)util::squares::EMPTY_SQ;
+		int rook_dest = (int)util::squares::EMPTY_SQ;
+		
+		// set up the origin and destination squares
+		switch (moveToMake.getUtilValue()) {
+		case 1: // kingside
+			king_origin = (color == 1) ? (int)util::squares::E1 : (int)util::squares::E8;
+			king_dest = (color == 1) ? (int)util::squares::G1 : (int)util::squares::G8;
+				
+			rook_origin = (color == 1) ? (int)util::squares::H1 : (int)util::squares::H8;
+			rook_dest = (color == 1) ? (int)util::squares::F1 : (int)util::squares::F8;
+			break;
+		case 2: // queenside
+			king_origin = (color == 1) ? (int)util::squares::E1 : (int)util::squares::E8;
+			king_dest = (color == 1) ? (int)util::squares::C1 : (int)util::squares::C8;
 
-	// clear opponent's piece on to square if this move is a capture
-	if (moveToMake.isCapture()) {
-		// if move is en passant, piece to clear is on a different square
-		int indToClear;
-		if(moveToMake.isEnPassant()){
-			indToClear = (gameboard.state.whiteToMove) ? toSq - 8 : toSq + 8 ;
+			rook_origin = (color == 1) ? (int)util::squares::A1 : (int)util::squares::A8;
+			rook_dest = (color == 1) ? (int)util::squares::D1 : (int)util::squares::D8;
+			break;
+		default: // you messed up
+			break;
 		}
-		else{ // otherwise square to clear is the destination square
-			indToClear = toSq;
+		// first move king
+		gameboard.state.kings &= ~(1ULL << king_origin);
+		gameboard.state.kings |= 1ULL << king_dest;
+		friends &= ~(1ULL << king_origin);
+		friends |= 1ULL << king_dest;
+
+		// then move rook
+		gameboard.state.rooks &= ~(1ULL << rook_origin);
+		gameboard.state.rooks |= 1ULL << rook_dest;
+		friends &= ~(1ULL << rook_origin);
+		friends |= 1ULL << rook_dest;
+	}
+	else { // not a castling move
+		// pointer to bitboard for this piece's and enemy's color
+		bitboard* color_mask = (gameboard.state.whiteToMove) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
+		bitboard* enemy_mask = (!gameboard.state.whiteToMove) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
+		// pointer to bitboard for this piece's type
+		bitboard* type_mask;
+		switch (pieceID) {
+		case util::Piece::PAWN:
+			type_mask = &gameboard.state.pawns;
+			break;
+		case util::Piece::BISHOP:
+			type_mask = &gameboard.state.bishops;
+			break;
+		case util::Piece::KNIGHT:
+			type_mask = &gameboard.state.knights;
+			break;
+		case util::Piece::ROOK:
+			type_mask = &gameboard.state.rooks;
+			break;
+		case util::Piece::QUEEN:
+			type_mask = &gameboard.state.queens;
+			break;
+		case util::Piece::KING:
+			type_mask = &gameboard.state.kings;
+			break;
+		default:
+			throw "Invalid piece ID";
+		}
+
+		// clear bit for piece type/color on from square
+		*color_mask &= ~(1ULL << fromSq);
+		*type_mask &= ~(1ULL << fromSq);
+
+		// clear opponent's piece on to square if this move is a capture
+		if (moveToMake.isCapture()) {
+			// if move is en passant, piece to clear is on a different square
+			int indToClear;
+			if (moveToMake.isEnPassant()) {
+				indToClear = (gameboard.state.whiteToMove) ? toSq - 8 : toSq + 8;
+			}
+			else { // otherwise square to clear is the destination square
+				indToClear = toSq;
+			}
+
+
+
+			*enemy_mask &= ~(1ULL << indToClear); // clear enemy color
+			// for now be lazy and clear all piece types at that index
+			// most will already be zero
+			// this will probably come back to bite me in the ass later
+			gameboard.state.pawns &= ~(1ULL << indToClear);
+			gameboard.state.bishops &= ~(1ULL << indToClear);
+			gameboard.state.knights &= ~(1ULL << indToClear);
+			gameboard.state.rooks &= ~(1ULL << indToClear);
+			gameboard.state.queens &= ~(1ULL << indToClear);
+
+		}
+
+		// set bit for piece type/color on to square
+		*color_mask |= 1ULL << toSq;
+		*type_mask |= 1ULL << toSq;
+
+		// if double pawn push, set en passant target square
+		if (moveToMake.isEnPassant() && !moveToMake.isCapture()) {
+			int epTarget = moveToMake.getUtilValue();
+			gameboard.state.PIPI = util::squares(epTarget);
+		}
+		else { // set en passant target to empty square
+			gameboard.state.PIPI = util::squares::EMPTY_SQ;
+		}
+
+		// if promotion, switch the pawn to the appropriate piece
+		if (moveToMake.isPawnPromo()) {
+			uint8_t promoID = moveToMake.getUtilValue();
+			// clear bit from pawn bitboard
+			gameboard.state.pawns &= ~(1ULL << toSq);
+			// set bit on appropriate other piece bitboard
+			switch (promoID) {
+			case 1: // bishop
+				gameboard.state.bishops |= 1ULL << toSq;
+				break;
+			case 2: // knight
+				gameboard.state.knights |= 1ULL << toSq;
+				break;
+			case 3: // rook
+				gameboard.state.rooks |= 1ULL << toSq;
+				break;
+			case 4: // queen
+				gameboard.state.queens |= 1ULL << toSq;
+				break;
+			default:
+				throw "invalid piece ID for promotion";
+			}
 		}
 
 		
-
-		*enemy_mask &= ~(1ULL << indToClear); // clear enemy color
-		// for now be lazy and clear all piece types at that index
-		// most will already be zero
-		// this will probably come back to bite me in the ass later
-		gameboard.state.pawns &= ~(1ULL << indToClear);
-		gameboard.state.bishops &= ~(1ULL << indToClear);
-		gameboard.state.knights &= ~(1ULL << indToClear);
-		gameboard.state.rooks &= ~(1ULL << indToClear);
-		gameboard.state.queens &= ~(1ULL << indToClear);
-
 	}
 
-	// set bit for piece type/color on to square
-	*color_mask |= 1ULL << toSq;
-	*type_mask |= 1ULL << toSq;
-
-	// if double pawn push, set en passant target square
-	if (moveToMake.isEnPassant() && !moveToMake.isCapture()) {
-		int epTarget = moveToMake.getUtilValue();
-		gameboard.state.PIPI = util::squares(epTarget);
-	}
-	else { // set en passant target to empty square
-		gameboard.state.PIPI = util::squares::EMPTY_SQ;
-	}
-
-	// if promotion, switch the pawn to the appropriate piece
-	if (moveToMake.isPawnPromo()) {
-		uint8_t promoID = moveToMake.getUtilValue();
-		// clear bit from pawn bitboard
-		gameboard.state.pawns &= ~(1ULL << toSq);
-		// set bit on appropriate other piece bitboard
-		switch(promoID){
-		case 1: // bishop
-			gameboard.state.bishops |= 1ULL << toSq;
-			break;
-		case 2: // knight
-			gameboard.state.knights |= 1ULL << toSq;
-			break;
-		case 3: // rook
-			gameboard.state.rooks |= 1ULL << toSq;
-			break;
-		case 4: // queen
-			gameboard.state.queens |= 1ULL << toSq;
-			break;
-		default:
-			throw "invalid piece ID for promotion";
-		}
-	}
-
-	// handle castling rights if rook or king moves
-	if (moveToMake.getPieceID() == util::Piece::ROOK) {
+	// handle castling rights if rook moves
+	if (pieceID == util::Piece::ROOK) {
 		if (gameboard.state.whiteToMove) {
 			switch (fromSq)
 			{
@@ -595,7 +781,7 @@ void DupEngine::makeMove() {
 			}
 		}
 	}
-	else if(moveToMake.getPieceID() == util::Piece::KING){
+	else if (pieceID == util::Piece::KING) { // king move or a castle removes all future castling rights
 		if (gameboard.state.whiteToMove) {
 			gameboard.state.castleRights.reset(2);
 			gameboard.state.castleRights.reset(3);
@@ -616,14 +802,26 @@ void DupEngine::makeMove() {
 }
 
 /// <summary>
+/// Undo the last move (used for move generation)
+/// </summary>
+void DupEngine::unmakeMove() {
+	gameboard.state = boardHistory[boardHistory.size()-1].state;
+	boardHistory.pop_back();
+	mHistory.pop_back();
+}
+
+/// <summary>
 /// Print a representation of the game state to the console
 /// </summary>
 void DupEngine::printGameState() {
-	// first, print the board
+	
 	char pieceStr;
+	std::string castleStr;
 
 	for (int rank = 8; rank > 0; rank--) {
-		printf("\n%i ", rank);
+		std::cout << "\n" << rank << " ";
+
+		// first, print the board & pieces
 		for (int file = (rank - 1) * 8; file < rank * 8; file++) {
 			bitboard ii = 1ULL << file;
 			if (gameboard.state.pawns & ii) {
@@ -648,30 +846,117 @@ void DupEngine::printGameState() {
 				pieceStr = '.';
 			}
 			if (gameboard.state.black_pcs & ii) { pieceStr = tolower(pieceStr); }
-			printf("%c", pieceStr);
+			std::cout << pieceStr;
+		}
+		std::cout << "\t|  ";
+
+		// print some supplemental info on lines
+		switch (rank) {
+		case 8:
+			// print side to move
+			std::cout << ((gameboard.state.whiteToMove) ? "White" : "Black") << " to move";
+			break;
+		case 7:
+			// print en passant square
+			std::cout << "En passant target square: " << util::squareStrings[(int)gameboard.state.PIPI];
+			break;
+		case 6:
+			// print castling rights
+
+			for (int ii = 3; ii >= 0; ii--) {
+				if (gameboard.state.castleRights.test(ii)) {
+					castleStr += "1";
+				}
+				else {
+					castleStr += "0";
+				}
+			}
+			std::cout << "Castling rights (KQkq): " << castleStr;
+			break;
+		case 5:
+			// print half move counter
+			std::cout << "Half move counter: " << gameboard.state.halfmove;
+			break;
+		case 4:
+			// print full moon counter
+			std::cout << "Half move counter: " << gameboard.state.fullmove;
+			break;
+		case 3:
+			// print last move
+			if (mHistory.size() > 0) {
+				std::cout << "Last move: " << mHistory.back().getLongSAN();
+			}
+			break;
+		default:
+			break;
 		}
 	}
-	printf("\n  ABCDEFGH\n\n");
+	std::cout << "\n  ABCDEFGH\t|\n\n";
+}
 
-	// print side to move
-	printf("%s to move\n", (gameboard.state.whiteToMove) ? "White" : "Black");
+/// <summary>
+/// Return the number of pieces that are attacking a square
+/// Find the number of attackers by calculating the possible captures from the square of interest
+/// </summary>
+/// <param name="square_index"></param>
+/// <returns></returns>
+int DupEngine::is_attacked(int square_index, int color, bitboard* color_mask) {
+	std::vector<Move> atk_list;
 
-	// print en passant square
-	printf("En passant target square: %s\n", util::squareStrings[(int)gameboard.state.PIPI]);
 
-	// print castling rights
-	std::string castleStr;
-	for (int ii = 3; ii >= 0; ii--) {
-		if (gameboard.state.castleRights.test(ii)) {
-			castleStr += "1";
+	findPawnAttacks(atk_list, square_index, color, color_mask);
+	findKnightMoves(atk_list, square_index, color, color_mask);
+	findBishopMoves(atk_list, square_index, color, color_mask);
+	findRookMoves(atk_list, square_index, color, color_mask);
+	findQueenMoves(atk_list, square_index, color, color_mask);
+	findKingMoves(atk_list, square_index, color, color_mask);
+
+	// remove all entries that dont target square_index and/or are not captures
+	for (int ii = 0; ii < atk_list.size(); ii++) {
+		Move& temp = atk_list[ii];
+		if (!(temp.isCapture()) || (int)temp.getFromSquare() != square_index) {
+			atk_list.erase(atk_list.begin() + ii);
+			ii--;
 		}
-		else {
-			castleStr += "0";
+		else { // is a potential capture, need to make sure the piece types match
+			util::Piece move_type = temp.getPieceID();
+			util::Piece target_piece = getPieceAtIndex(temp.getToSquare());
+			if (move_type != target_piece) {
+				atk_list.erase(atk_list.begin() + ii);
+				ii--;
+			}
+
 		}
 	}
-	printf("Castling rights (KQkq): %s\n", castleStr.c_str());
 
-	// print half/full move counters
-	printf("Half move counter: %i\n", gameboard.state.halfmove);
-	printf("Full move counter: %i\n", gameboard.state.fullmove);
+	return atk_list.size();
+}
+
+/// <summary>
+/// return the type of piece at the given square
+/// </summary>
+/// <param name="sq_Index"></param>
+/// <returns></returns>
+util::Piece DupEngine::getPieceAtIndex(int sq_index){
+	// check piece types one by one
+	bool is_pawn = (gameboard.state.pawns >> sq_index) & 1ULL;
+	if (is_pawn) { return util::Piece::PAWN; }
+
+	bool is_knight = (gameboard.state.knights >> sq_index) & 1ULL;
+	if (is_knight) { return util::Piece::KNIGHT; }
+
+	bool is_bishop = (gameboard.state.bishops >> sq_index) & 1ULL;
+	if (is_bishop) { return util::Piece::BISHOP; }
+
+	bool is_rook = (gameboard.state.rooks >> sq_index) & 1ULL;
+	if (is_rook) { return util::Piece::ROOK; }
+
+	bool is_queen = (gameboard.state.queens >> sq_index) & 1ULL;
+	if (is_queen) { return util::Piece::QUEEN; }
+
+	bool is_king = (gameboard.state.kings >> sq_index) & 1ULL;
+	if (is_king) { return util::Piece::KING; }
+
+	return util::Piece::NONE;
+
 }
