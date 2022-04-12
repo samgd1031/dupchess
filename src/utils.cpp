@@ -92,7 +92,7 @@ bitboard util::rankAttacks(bitboard occ, int sqInd){
 	}
 	// moves/attacks towards A file
 	ii = file - 1;
-	while (ii > 0) {
+	while (ii > -1) {
 		rank_atk |= 1ULL << ii;
 		// if bit is occupied, set this as a valid move (capture) and break
 		if ((occ_byte >> ii) & 1U) { break; }

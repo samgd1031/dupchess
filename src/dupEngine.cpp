@@ -130,12 +130,15 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	bool can_queenside = (color == 1) ? (bool)gameboard.state.castleRights.test(2) : (bool)gameboard.state.castleRights.test(0);
 	DupEngine::findCastles(movelist, color, color_mask, can_kingside, can_queenside);
 
-	//TODO: remove moves that would leave the king in check
+	//remove moves that would leave the king in check
 	for (int ii = 0; ii < movelist.size(); ii++) {
 		// make the move
 		makeMove(movelist[ii]);
+		
 		// see if king is attacked (would put the king in check)
-		bool is_king_attacked = is_attacked(king_index, color, color_mask);
+		unsigned long test_king_index;
+		_BitScanForward64(&test_king_index, gameboard.state.kings & *color_mask);
+		bool is_king_attacked = is_attacked(test_king_index, color, color_mask);
 		// if king is attacked, remove this move from valid move list
 		if (is_king_attacked) { movelist.erase(movelist.begin() + ii); ii--; }
 
@@ -334,6 +337,7 @@ inline void DupEngine::findRookMoves(std::vector<Move>& mlist, int sqIndex, int 
 	// horizontal moves cant use hyperbolic quintessence because of dumb math reason
 	// this is probably a slowish way to do it (lookup tables maybe faster but I'm dumb)
 	bitboard horz = util::rankAttacks(occ, sqIndex);
+
 
 	// get quiescent moves
 	bitboard rook_moves = (vert | horz) & ~occ;
@@ -998,8 +1002,10 @@ uint64_t DupEngine::perft(int depth) {
 	uint64_t nodes = 0;
 
 	perft_mlist = getLegalMoves();
-
-	if (depth == 1) {
+	if (depth == 0) {
+		return 1;
+	}
+	else if (depth == 1) {
 		return (uint64_t)perft_mlist.size();
 	}
 	else {

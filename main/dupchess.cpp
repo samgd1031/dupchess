@@ -2,6 +2,8 @@
 #include <iostream>
 #include <bitset>
 #include <string>
+#include <chrono>
+
 
 #include "dupEngine.h"
 
@@ -84,9 +86,45 @@ int main()
 
 			std::cout << "\tPerft for depth " << depth << ": ";
 
+			auto start_time = std::chrono::high_resolution_clock::now();
 			uint64_t perft_results = engine.perft(depth);
+			auto stop_time = std::chrono::high_resolution_clock::now();
+			auto run_time = std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time);
 
 			std::cout << perft_results << std::endl;
+
+			std::cout << "\tPerft run time: " << run_time.count() *1e-3 << " ms\n";
+			std::cout << "\tSpeed: " << (float)perft_results / (run_time.count() * 1E-6) << " nodes/sec\n";
+			std::cout << "Waiting for input... (exit to end)" << std::endl;	
+		}
+
+		// run divide (perft but put out the first set of moves)
+		else if (cmd_string.compare(0, 7, "divide ") == 0) {
+			// get depth
+			int depth = std::stoi(cmd_string.substr(7));
+
+			std::cout << "\tPerft for depth " << depth << "\n";
+
+			auto start_time = std::chrono::high_resolution_clock::now();
+			std::vector<Move> mlist = engine.getLegalMoves();
+			
+			uint64_t perft_results, total_nodes = 0;
+			for (int ii = 0; ii < mlist.size(); ii++) {
+				std::cout << "\t  " << mlist[ii].getLongSAN() << ": ";
+				engine.makeMove(mlist[ii]);
+				perft_results = engine.perft(depth - 1);
+				engine.unmakeMove();
+				
+				std::cout << perft_results << "\n";
+				total_nodes += perft_results;
+			}
+			
+			auto stop_time = std::chrono::high_resolution_clock::now();
+			auto run_time = std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time);
+
+			std::cout << "\n\tTotal Nodes: " << total_nodes << "\n";
+			std::cout << "\tPerft run time: " << run_time.count() * 1e-3 << " ms\n";
+			std::cout << "\tSpeed: " << (float)total_nodes / (run_time.count() * 1E-6) << " nodes/sec\n";
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 
