@@ -42,6 +42,9 @@ public:
 	// constructor
 	DupEngine();
 
+	// utility
+	uint64_t perft(int depth);
+
 	Move chosen_move;
 
 private:
@@ -62,6 +65,8 @@ private:
 
 	// utility
 	int is_attacked(int square_index, int color, bitboard* color_mask); // return the number of pieces attacking a square
+	bool is_in_check(int color); // figure out if the king of the given color is in check
 	util::Piece DupEngine::getPieceAtIndex(int sq_index); // return the type of piece at the given square
+	void reset_game();
 	
 };

@@ -77,6 +77,19 @@ int main()
 			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 
+		// run perft
+		else if (cmd_string.compare(0, 6, "perft ") == 0) {
+			// get depth
+			int depth = std::stoi(cmd_string.substr(6));
+
+			std::cout << "\tPerft for depth " << depth << ": ";
+
+			uint64_t perft_results = engine.perft(depth);
+
+			std::cout << perft_results << std::endl;
+			std::cout << "Waiting for input... (exit to end)" << std::endl;
+		}
+
 		// talk smack
 		else if (_stricmp(cmd_string.c_str(), "trash_talk") == 0) {
 			std::cout << engine.trash_talk() << std::endl;

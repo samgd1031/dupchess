@@ -8,10 +8,22 @@ DupEngine::DupEngine(void) {
 	mHistory.reserve(80);
 	boardHistory.reserve(40);
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
-	srand((int)time(NULL));  // set random generator seed
 	chosen_move = Move();
+	srand((int)time(NULL));  // set random generator seed
 }
 ///////////////////////////////////////////
+
+/// <summary>
+/// reset game state to initial board
+/// </summary>
+void DupEngine::reset_game() {
+	gameboard = Board();
+	mlist.clear();
+	mHistory.clear();
+	boardHistory.clear();
+	gameboard.setBoardFromFEN(DupEngine::START_FEN);
+	chosen_move = Move();
+}
 
 // informational functions ////////////////
 std::string DupEngine::getEngineName() {
@@ -119,6 +131,18 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	DupEngine::findCastles(movelist, color, color_mask, can_kingside, can_queenside);
 
 	//TODO: remove moves that would leave the king in check
+	for (int ii = 0; ii < movelist.size(); ii++) {
+		// make the move
+		makeMove(movelist[ii]);
+		// see if king is attacked (would put the king in check)
+		bool is_king_attacked = is_attacked(king_index, color, color_mask);
+		// if king is attacked, remove this move from valid move list
+		if (is_king_attacked) { movelist.erase(movelist.begin() + ii); ii--; }
+
+		// unmake the move
+		unmakeMove();
+
+	}
 	
 
 	return movelist;
@@ -959,4 +983,47 @@ util::Piece DupEngine::getPieceAtIndex(int sq_index){
 
 	return util::Piece::NONE;
 
+}
+
+
+/// <summary>
+/// performance test for move generation
+/// return the possible number of moves to the given depth
+/// TODO: figure out how to time it
+/// </summary>
+/// <param name="depth"></param>
+/// <returns></returns>
+uint64_t DupEngine::perft(int depth) {
+	std::vector<Move> perft_mlist;
+	uint64_t nodes = 0;
+
+	perft_mlist = getLegalMoves();
+
+	if (depth == 1) {
+		return (uint64_t)perft_mlist.size();
+	}
+	else {
+		int color = (gameboard.state.whiteToMove) ? 1 : -1;
+		for (int ii = 0; ii < perft_mlist.size(); ii++) {
+			makeMove(perft_mlist[ii]);
+			if (!is_in_check(color)) {
+				nodes += perft(depth - 1);
+			}
+			unmakeMove();
+		}
+	}
+	return nodes;
+}
+
+/// <summary>
+/// figure out if king of given color is in check
+/// </summary>
+/// <param name="color"></param>
+/// <returns></returns>
+bool DupEngine::is_in_check(int color) {
+	bitboard* color_mask = (color == 1) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
+	unsigned long king_index;
+	_BitScanForward64(&king_index,(gameboard.state.kings & *color_mask));
+
+	return is_attacked((int)king_index, color, color_mask);
 }
