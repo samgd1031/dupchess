@@ -26,7 +26,6 @@ int main()
 	std::cout << "    " << engine.getEmailAddress() << std::endl;
 	std::cout << "    " << engine.getCountryName() << std::endl;
 
-	std::cout << "\nWaiting for input... (exit to end)" << std::endl;
 	while (std::getline(std::cin, cmd_string)) {
 		// exit if command string is "exit"
 		if (_stricmp(cmd_string.c_str(), "exit") == 0) {
@@ -34,7 +33,7 @@ int main()
 			break;
 		}
 		//set game board state from a FEN
-		else if (cmd_string.compare(0, 8, "set_fen ") == 0) {
+		else if (cmd_string.compare(0, 4, "fen ") == 0) {
 			std::string fen = cmd_string.substr(8, cmd_string.length());
 			std::cout << "setting board from FEN:\n" << fen << std::endl;
 
@@ -42,8 +41,6 @@ int main()
 
 			std::cout << "new board state:" << std::endl;
 			engine.printGameState();
-
-			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 		// generic test function
 		else if(_stricmp(cmd_string.c_str(), "test") == 0) {
@@ -58,16 +55,14 @@ int main()
 			
 
 			std::cout << "done testing a thing" << std::endl;
-			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 		//
-		else if (_stricmp(cmd_string.c_str(), "print_board") == 0) {
+		else if (cmd_string.compare(0,2, "pr") == 0) {
 			engine.printGameState();
-			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 
 		// print list of possible moves
-		else if (_stricmp(cmd_string.c_str(), "list_moves") == 0) {
+		else if (cmd_string.compare(0,2, "lm") == 0) {
 			std::vector<Move> mlist = engine.getLegalMoves();
 
 			engine.printGameState();
@@ -75,33 +70,12 @@ int main()
 			for (int ii = 0; ii < mlist.size(); ii++) {
 				std::cout << "\tMove " << ii+1 << ": " << mlist[ii].getLongSAN() << std::endl;
 			}
-
-			std::cout << "Waiting for input... (exit to end)" << std::endl;
-		}
-
-		// run perft
-		else if (cmd_string.compare(0, 6, "perft ") == 0) {
-			// get depth
-			int depth = std::stoi(cmd_string.substr(6));
-
-			std::cout << "\tPerft for depth " << depth << ": ";
-
-			auto start_time = std::chrono::high_resolution_clock::now();
-			uint64_t perft_results = engine.perft(depth);
-			auto stop_time = std::chrono::high_resolution_clock::now();
-			auto run_time = std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time);
-
-			std::cout << perft_results << std::endl;
-
-			std::cout << "\tPerft run time: " << run_time.count() *1e-3 << " ms\n";
-			std::cout << "\tSpeed: " << (float)perft_results / (run_time.count() * 1E-6) << " nodes/sec\n";
-			std::cout << "Waiting for input... (exit to end)" << std::endl;	
 		}
 
 		// run divide (perft but put out the first set of moves)
-		else if (cmd_string.compare(0, 7, "divide ") == 0) {
+		else if (cmd_string.compare(0, 6, "perft ") == 0) {
 			// get depth
-			int depth = std::stoi(cmd_string.substr(7));
+			int depth = std::stoi(cmd_string.substr(6));
 
 			std::cout << "\tPerft for depth " << depth << "\n";
 
@@ -125,17 +99,26 @@ int main()
 			std::cout << "\n\tTotal Nodes: " << total_nodes << "\n";
 			std::cout << "\tPerft run time: " << run_time.count() * 1e-3 << " ms\n";
 			std::cout << "\tSpeed: " << (float)total_nodes / (run_time.count() * 1E-6) << " nodes/sec\n";
-			std::cout << "Waiting for input... (exit to end)" << std::endl;
 		}
 
 		// talk smack
-		else if (_stricmp(cmd_string.c_str(), "trash_talk") == 0) {
+		else if (cmd_string.compare(0, 5, "smack") == 0) {
 			std::cout << engine.trash_talk() << std::endl;
-			std::cout << "Waiting for input... (exit to end)" << std::endl;
+		}
+		// list commands
+		else if(cmd_string.compare(0, 4, "help") == 0) {
+			std::cout << "--- LIST OF COMMANDS ---\n";
+			std::cout << "\tfen <FEN_STRING> - Set board to position indicated by FEN_STRING\n";
+			std::cout << "\ttest - make a random move\n";
+			std::cout << "\tpr - print the current board state\n";
+			std::cout << "\tlm - list all available moves for the current player\n";
+			std::cout << "\tperft <DEPTH> - run a perft test to depth DEPTH from the current position\n";
+			std::cout << "\tsmack - talk smack\n";
+			std::cout << "\texit - close the program\n";
 		}
 		else {
-			std::cout << "cmd: " << cmd_string << std::endl;
-			std::cout << "Waiting for input... (exit to end)" << std::endl;
+			std::cout << "cmd: " << cmd_string << " not recognized" << std::endl;
+
 		}
 	}
 
