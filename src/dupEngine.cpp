@@ -728,6 +728,33 @@ void DupEngine::makeMove(Move moveToMake) {
 				indToClear = toSq;
 			}
 
+			//update castling rights if piece captured is a rook
+			if ((gameboard.state.rooks >> toSq) & 1ULL) {
+				if (color == -1) { // black makes the capture so white's castle rights need to be checked
+					switch (toSq) {
+					case 7: // white kingside
+						gameboard.state.castleRights.reset(3);
+						break;
+					case 0: // white queenside
+						gameboard.state.castleRights.reset(2);
+						break;
+					default:
+						break;
+					}
+				}
+				else { // white makes the capture so black's castle rights need to be checked
+					switch (toSq) {
+					case 63: // black kingside
+						gameboard.state.castleRights.reset(1);
+						break;
+					case 56: // black queenside
+						gameboard.state.castleRights.reset(0);
+						break;
+					default:
+						break;
+					}
+				}
+			}
 
 
 			*enemy_mask &= ~(1ULL << indToClear); // clear enemy color
@@ -739,6 +766,9 @@ void DupEngine::makeMove(Move moveToMake) {
 			gameboard.state.knights &= ~(1ULL << indToClear);
 			gameboard.state.rooks &= ~(1ULL << indToClear);
 			gameboard.state.queens &= ~(1ULL << indToClear);
+
+			
+
 
 		}
 
