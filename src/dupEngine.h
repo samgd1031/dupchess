@@ -7,7 +7,6 @@
 #include "utils.h"
 #include "board.h"
 #include "move.h"
-#include "io_handler.h"
 
 // class for the DupChess Engine
 // main class to handle UCI commands as well as manage the thinking about chess part
@@ -49,8 +48,6 @@ public:
 	Move chosen_move;
 
 private:
-	IO_handler io;
-
 	std::vector<Move> mlist;
 
 	std::vector<Move> mHistory;
