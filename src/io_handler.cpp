@@ -91,7 +91,10 @@ void IO_handler::process_io() {
 			std::cout << "\tPerft run time: " << run_time.count() * 1e-3 << " ms\n";
 			std::cout << "\tSpeed: " << (float)total_nodes / (run_time.count() * 1E-6) << " nodes/sec\n";
 		}
-
+		// uci start command
+		else if(cmd_string.compare("uci") == 0) {
+			respond_uci();
+		}
 		// talk smack
 		else if (cmd_string.compare("smack") == 0) {
 			std::cout << engine.trash_talk() << std::endl;
@@ -100,6 +103,7 @@ void IO_handler::process_io() {
 		else if (cmd_string.compare("help") == 0) {
 			std::cout << "--- LIST OF COMMANDS ---\n";
 			std::cout << "\tfen <FEN_STRING> - Set board to position indicated by FEN_STRING\n";
+			std::cout << "\tuci - uci start command\n";
 			std::cout << "\ttest - make a random move\n";
 			std::cout << "\tpr - print the current board state\n";
 			std::cout << "\tlm - list all available moves for the current player\n";
@@ -120,4 +124,17 @@ void IO_handler::process_io() {
 void IO_handler::start() {
 	std::thread io_thread(&IO_handler::process_io, this);
 	io_thread.join();
+}
+
+
+/// <summary>
+/// respond to "uci" command from gui
+/// </summary>
+void IO_handler::respond_uci(){
+	std::cout << "id name DupChess" << std::endl;;
+	std::cout << "id author Sam Dupas" << std::endl;;
+
+	//TODO: add options if I ever get smart enough to figure that out
+
+	std::cout << "uciok" << std::endl;
 }
