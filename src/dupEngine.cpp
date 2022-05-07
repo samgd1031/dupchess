@@ -3,6 +3,21 @@
 
 // Constructor ////////////////////////////
 DupEngine::DupEngine(void) {
+
+	std::cout << "    ____              ________                   " << std::endl;
+	std::cout << "   / __ \\__  ______  / ____/ /_  ___  __________ " << std::endl;
+	std::cout << "  / / / / / / / __ \\/ /   / __ \\/ _ \\/ ___/ ___/ " << std::endl;
+	std::cout << " / /_/ / /_/ / /_/ / /___/ / / /  __(__  |__  )  " << std::endl;
+	std::cout << "/_____/\\____/ ____/\\____/_/ /_/\\___/____/____/   " << std::endl;
+	std::cout << "           /_/                                     " << std::endl;
+
+
+	std::cout << "    " << getEngineName() << " v." << getEngineVersion() << std::endl;
+	std::cout << "    " << getAuthorName() << std::endl;
+	std::cout << "    " << getEmailAddress() << std::endl;
+	std::cout << "    " << getCountryName() << std::endl;
+
+
 	gameboard = Board();
 	mlist.reserve(200);
 	mHistory.reserve(80);
@@ -10,6 +25,9 @@ DupEngine::DupEngine(void) {
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
 	chosen_move = Move();
 	srand((int)time(NULL));  // set random generator seed
+
+	// start io handler thread
+	io.start();
 }
 ///////////////////////////////////////////
 
@@ -958,7 +976,7 @@ int DupEngine::is_attacked(int square_index, int color, bitboard* color_mask) {
 		}
 	}
 
-	return atk_list.size();
+	return (int)atk_list.size();
 }
 
 /// <summary>

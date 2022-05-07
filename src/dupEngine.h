@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "board.h"
 #include "move.h"
+#include "io_handler.h"
 
 // class for the DupChess Engine
 // main class to handle UCI commands as well as manage the thinking about chess part
@@ -48,6 +49,8 @@ public:
 	Move chosen_move;
 
 private:
+	IO_handler io;
+
 	std::vector<Move> mlist;
 
 	std::vector<Move> mHistory;
@@ -68,5 +71,6 @@ private:
 	bool is_in_check(int color); // figure out if the king of the given color is in check
 	util::Piece DupEngine::getPieceAtIndex(int sq_index); // return the type of piece at the given square
 	void reset_game();
-	
+
+
 };
