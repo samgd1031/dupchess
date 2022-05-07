@@ -49,12 +49,13 @@ std::string DupEngine::getCountryName() {
 
 // Trash talk /////////////////////////////
 std::string DupEngine::trash_talk() {
-	std::string lines[4] = { "Up yours, Jonah!\n",
+	std::string lines[5] = { "Up yours, Jonah!\n",
 							 "Bite my shiny metal ass!\n",
 							 "I'm afraid I can't let you do that...\n",
-							 "'Not only do I smell bad, I'm horrible at chess!'\n\t-Jonah"};
+							 "'Not only do I smell bad, I'm horrible at chess!'\n\t-Jonah",
+							 "I'm playing DupChess while you're playing poopChess"};
 
-	return lines[std::rand() % 4];
+	return lines[std::rand() % 5];
 }
 ///////////////////////////////////////////
 
