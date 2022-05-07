@@ -26,13 +26,13 @@ void IO_handler::process_io() {
 	std::string cmd_string;
 	while (std::getline(std::cin, cmd_string)) {
 		// exit if command string is "exit"
-		if (_stricmp(cmd_string.c_str(), "exit") == 0) {
-			std::cout << "Exiting..." << std::endl;
+		if (cmd_string.compare("exit") == 0) {
+			std::cout << "Exiting...";
 			break;
 		}
 		//set game board state from a FEN
 		else if (cmd_string.compare(0, 4, "fen ") == 0) {
-			std::string fen = cmd_string.substr(8, cmd_string.length());
+			std::string fen = cmd_string.substr(4, cmd_string.length());
 			std::cout << "setting board from FEN:\n" << fen << std::endl;
 
 			engine.gameboard.setBoardFromFEN(fen);
@@ -41,19 +41,19 @@ void IO_handler::process_io() {
 			engine.printGameState();
 		}
 		// generic test function
-		else if (_stricmp(cmd_string.c_str(), "test") == 0) {
+		else if (cmd_string.compare("test") == 0) {
 				engine.chooseMove();
 				std::cout << "making move: " << engine.chosen_move.getLongSAN() << std::endl;
 				engine.makeMove(engine.chosen_move);
 				engine.printGameState();
 		}
 		//
-		else if (cmd_string.compare(0, 2, "pr") == 0) {
+		else if (cmd_string.compare("pr") == 0) {
 			engine.printGameState();
 		}
 
 		// print list of possible moves
-		else if (cmd_string.compare(0, 2, "lm") == 0) {
+		else if (cmd_string.compare("lm") == 0) {
 			std::vector<Move> mlist = engine.getLegalMoves();
 
 			engine.printGameState();
@@ -93,11 +93,11 @@ void IO_handler::process_io() {
 		}
 
 		// talk smack
-		else if (cmd_string.compare(0, 5, "smack") == 0) {
+		else if (cmd_string.compare("smack") == 0) {
 			std::cout << engine.trash_talk() << std::endl;
 		}
 		// list commands
-		else if (cmd_string.compare(0, 4, "help") == 0) {
+		else if (cmd_string.compare("help") == 0) {
 			std::cout << "--- LIST OF COMMANDS ---\n";
 			std::cout << "\tfen <FEN_STRING> - Set board to position indicated by FEN_STRING\n";
 			std::cout << "\ttest - make a random move\n";
