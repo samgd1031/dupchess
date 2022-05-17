@@ -20,4 +20,5 @@ private:
 
 	// uci commands
 	void respond_uci();
+	void set_position();
 };
