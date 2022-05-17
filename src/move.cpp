@@ -54,45 +54,18 @@ Move::Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool i
 }
 
 
-// return a long SAN notation string for the move
-std::string Move::getLongSAN() {
-	std::string san = "";
-	
-	if (isCastle()) {
-		switch(getUtilValue()) {
-		case 1: // kingside castle
-			return "O-O";
-		case 2:
-			return "O-O-O";
-		default: // should never be reached
-			return "you messed up, neither king nor queenside castle";
-		}
-	}
+// return a long algebraic string for the move (from square, to square, piece if promo)
+std::string Move::getLongAN() {
+	std::string buf(util::squareStrings[getFromSquare()]);
+	buf.append(util::squareStrings[getToSquare()]);
 
-	// if not a pawn put the piece abbreviation
-	if ((bits & pieceMask) >> pieceShift > 0) {
-		san += util::pieceAbbr[(bits & pieceMask) >> pieceShift];
-	}
-	// append the origin square
-	san += util::squareStrings[bits & fromMask];
-	// if move is en passant capture, remove the rank number
-	if (isCapture() && isEnPassant()) {
-		san = san.substr(0, san.size() - 1);
-	}
-	// add an x if a capture
-	if ((bits & capMask) >> capShift == 1) {
-		san += "x";
-	}
-	// add the destination square
-	san += util::squareStrings[(bits & toMask) >> toShift];
-
-	// add the promotion
+	// add the promotion piece if necessary
 	if ((bits & promoMask) >> promoShift == 1) {
 		// get piece promoting to
-		san += util::pieceAbbr[(bits & utilMask) >> utilShift];
+		buf += util::pieceAbbr[(bits & utilMask) >> utilShift];
 	}
 
-	return san;
+	return buf;
 }
 
 // return index of from square
