@@ -28,6 +28,7 @@ public:
 	std::vector<Move> getLegalMoves();
 	void chooseMove();
 	void makeMove(Move moveToMake);
+	void makeMoveFromString(std::string LAN_move);
 	void unmakeMove();
 
 	// talk smack to the haters
@@ -45,7 +46,7 @@ public:
 	// utility
 	uint64_t perft(int depth);
 
-	Move chosen_move;
+	Move best_move;
 
 	std::vector<Move> mHistory;
 	std::vector<Board> boardHistory;
