@@ -56,11 +56,11 @@ void IO_handler::process_io() {
 			}
 			else if (splitstr[0].compare("fen") == 0) {
 				std::string fen_string = "";
-				for (int ii = 0; ii < splitstr.size(); ii++) {
-					if (splitstr[ii].compare("moves")) {
+				for (int ii = 1; ii < splitstr.size(); ii++) {
+					if (splitstr[ii].compare("moves")==0) {
 						break;
 					}
-					fen_string += splitstr[ii];
+					fen_string += splitstr[ii] + " ";
 				}
 				engine.gameboard.setBoardFromFEN(fen_string);
 			}
@@ -68,8 +68,12 @@ void IO_handler::process_io() {
 			engine.mHistory.clear();
 			engine.boardHistory.clear();
 
-			//TODO: handle sequence of moves
+			//TODO: handle sequence of moves after startpos/fen string
 
+		}
+		// start "thinking" (return a random move for now)
+		else if (cmd_string.compare(0,2, "go") == 0) {
+			respond_go(cmd_string);
 		}
 		// generic test function
 		else if (cmd_string.compare("test") == 0) {
@@ -166,4 +170,14 @@ void IO_handler::respond_uci(){
 	//TODO: add options if I ever get smart enough to figure that out
 
 	std::cout << "uciok" << std::endl;
+}
+
+/// <summary>
+/// handle the "go" command to start thinking
+/// doesnt support most of the options just yet
+/// </summary>
+/// <param name="cmd_string"></param>
+void IO_handler::respond_go(std::string cmd_string) {
+	engine.chooseMove();
+	std::cout << "bestmove " << engine.chosen_move.getLongAN() << std::endl;
 }

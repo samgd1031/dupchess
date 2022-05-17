@@ -20,5 +20,6 @@ private:
 
 	// uci commands
 	void respond_uci();
+	void respond_go(std::string cmd_string);
 	void set_position();
 };
