@@ -43,7 +43,7 @@ void IO_handler::process_io() {
 		// generic test function
 		else if (cmd_string.compare("test") == 0) {
 				engine.chooseMove();
-				std::cout << "making move: " << engine.chosen_move.getLongSAN() << std::endl;
+				std::cout << "making move: " << engine.chosen_move.getLongAN() << std::endl;
 				engine.makeMove(engine.chosen_move);
 				engine.printGameState();
 		}
@@ -59,7 +59,7 @@ void IO_handler::process_io() {
 			engine.printGameState();
 			std::cout << "Moves for " << ((engine.gameboard.state.whiteToMove) ? "white" : "black") << ":" << std::endl;
 			for (int ii = 0; ii < mlist.size(); ii++) {
-				std::cout << "\tMove " << ii + 1 << ": " << mlist[ii].getLongSAN() << std::endl;
+				std::cout << "Move " << std::setw(2) << ii + 1 << ": " << mlist[ii].getLongAN() << std::endl;
 			}
 		}
 
@@ -68,14 +68,12 @@ void IO_handler::process_io() {
 			// get depth
 			int depth = std::stoi(cmd_string.substr(6));
 
-			std::cout << "\tPerft for depth " << depth << "\n";
-
 			auto start_time = std::chrono::high_resolution_clock::now();
 			std::vector<Move> mlist = engine.getLegalMoves();
 
 			uint64_t perft_results, total_nodes = 0;
 			for (int ii = 0; ii < mlist.size(); ii++) {
-				std::cout << "\t  " << mlist[ii].getLongSAN() << ": ";
+				std::cout << mlist[ii].getLongAN() << ": ";
 				engine.makeMove(mlist[ii]);
 				perft_results = engine.perft(depth - 1);
 				engine.unmakeMove();

@@ -13,7 +13,7 @@ namespace util {
 
 	enum class Piece { PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING, NONE };
 
-	static const char* pieceAbbr[6]{ "P","B","N","R","Q","K" };
+	static const char* pieceAbbr[6]{ "p","b","n","r","q","k" };
 
 	enum class squares {
 		A1, B1, C1, D1, E1, F1, G1, H1,

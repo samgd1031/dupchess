@@ -11,7 +11,7 @@ public:
 	Move(uint32_t fromInd, uint32_t toInd, util::Piece pID, bool isCap, bool isPromo, bool isEP, bool isCastle, uint8_t util_bits);
 
 	// return long SAN notation string for move
-	std::string getLongSAN();
+	std::string getLongAN();
 
 	// get information about the move
 	int getFromSquare();

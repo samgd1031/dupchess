@@ -549,6 +549,9 @@ inline void DupEngine::findKnightMoves(std::vector<Move>& mlist, int sqIndex, in
 /// <param name="can_queenside"></param>
 inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard* color_mask, bool can_kingside, bool can_queenside){
 	bitboard empty = ~(gameboard.state.white_pcs | gameboard.state.black_pcs);
+	util::squares king_location = (color == 1) ? (util::squares::E1) : (util::squares::E8);
+	util::squares kingside_tgt = (color == 1) ? (util::squares::H1) : (util::squares::H8);
+	util::squares queenside_tgt = (color == 1) ? (util::squares::A1) : (util::squares::A8);
 	
 	// kingside castle
 	if (can_kingside) {
@@ -577,7 +580,7 @@ inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard
 			}
 			
 			if (safe_to_castle) {
-				mlist.push_back(Move((int)util::squares::EMPTY_SQ, (int)util::squares::EMPTY_SQ, util::Piece::KING, false, false, false, true, 1));
+				mlist.push_back(Move((int)king_location, (int)kingside_tgt, util::Piece::KING, false, false, false, true, 1));
 			}	
 		}
 	}
@@ -608,7 +611,7 @@ inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard
 			}
 
 			if (safe_to_castle) {
-				mlist.push_back(Move((int)util::squares::EMPTY_SQ, (int)util::squares::EMPTY_SQ, util::Piece::KING, false, false, false, true, 2));
+				mlist.push_back(Move((int)king_location, (int)queenside_tgt, util::Piece::KING, false, false, false, true, 2));
 			}
 		}
 	}
@@ -944,7 +947,7 @@ void DupEngine::printGameState() {
 		case 3:
 			// print last move
 			if (mHistory.size() > 0) {
-				std::cout << "Last move: " << mHistory.back().getLongSAN();
+				std::cout << "Last move: " << mHistory.back().getLongAN();
 			}
 			break;
 		default:
