@@ -9,7 +9,7 @@ DupEngine::DupEngine(void) {
 	mHistory.reserve(80);
 	boardHistory.reserve(40);
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
-	chosen_move = Move();
+	best_move = Move();
 	srand((int)time(NULL));  // set random generator seed
 }
 ///////////////////////////////////////////
@@ -23,7 +23,7 @@ void DupEngine::reset_game() {
 	mHistory.clear();
 	boardHistory.clear();
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
-	chosen_move = Move();
+	best_move = Move();
 }
 
 // informational functions ////////////////
@@ -550,8 +550,8 @@ inline void DupEngine::findKnightMoves(std::vector<Move>& mlist, int sqIndex, in
 inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard* color_mask, bool can_kingside, bool can_queenside){
 	bitboard empty = ~(gameboard.state.white_pcs | gameboard.state.black_pcs);
 	util::squares king_location = (color == 1) ? (util::squares::E1) : (util::squares::E8);
-	util::squares kingside_tgt = (color == 1) ? (util::squares::H1) : (util::squares::H8);
-	util::squares queenside_tgt = (color == 1) ? (util::squares::A1) : (util::squares::A8);
+	util::squares kingside_tgt = (color == 1) ? (util::squares::G1) : (util::squares::G8);
+	util::squares queenside_tgt = (color == 1) ? (util::squares::C1) : (util::squares::C8);
 	
 	// kingside castle
 	if (can_kingside) {
@@ -629,7 +629,7 @@ void DupEngine::chooseMove() {
 		printf("%s has no moves!\n", (gameboard.state.whiteToMove) ? "White" : "Black");
 		return;
 	}
-	chosen_move = mlist[std::rand() % mlist.size()];
+	best_move = mlist[std::rand() % mlist.size()];
 }
 
 
@@ -1067,4 +1067,26 @@ bool DupEngine::is_in_check(int color) {
 	_BitScanForward64(&king_index,(gameboard.state.kings & *color_mask));
 
 	return is_attacked((int)king_index, color, color_mask);
+}
+
+
+/// <summary>
+/// given a long algebraic notation string, make the move
+/// </summary>
+/// <param name="LAN_move"></param>
+void DupEngine::makeMoveFromString(std::string LAN_move) {
+	// first, get list of legal moves
+	std::vector<Move> mlist = getLegalMoves();
+	bool made_move = false;
+	//step through list and find the move that matches the provided string
+	for (int ii = 0; ii < mlist.size(); ii++) {
+		if (LAN_move.compare(mlist[ii].getLongAN()) == 0) {
+			makeMove(mlist[ii]);
+			made_move = true;
+			break;
+		}
+	}
+
+	// error, couldnt find move because string was wrong or illegal move
+	if (!made_move) { std::cout << "Invalid move" << std::endl; }
 }

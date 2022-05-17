@@ -26,7 +26,7 @@ void IO_handler::process_io() {
 	std::string cmd_string;
 	while (std::getline(std::cin, cmd_string)) {
 		// exit if command string is "exit"
-		if (cmd_string.compare("exit") == 0) {
+		if (cmd_string.compare("quit") == 0) {
 			std::cout << "Exiting...";
 			break;
 		}
@@ -69,6 +69,13 @@ void IO_handler::process_io() {
 			engine.boardHistory.clear();
 
 			//TODO: handle sequence of moves after startpos/fen string
+			auto it = std::find(splitstr.begin(), splitstr.end(), "moves");
+			if (it != splitstr.end()) {
+				int index = (int)(it - splitstr.begin());
+				for (int ii = index + 1; ii < splitstr.size(); ii++) {
+					engine.makeMoveFromString(splitstr[ii]);
+				}
+			}
 
 		}
 		// start "thinking" (return a random move for now)
@@ -78,15 +85,22 @@ void IO_handler::process_io() {
 		// generic test function
 		else if (cmd_string.compare("test") == 0) {
 				engine.chooseMove();
-				std::cout << "making move: " << engine.chosen_move.getLongAN() << std::endl;
-				engine.makeMove(engine.chosen_move);
+				std::cout << "making move: " << engine.best_move.getLongAN() << std::endl;
+				engine.makeMove(engine.best_move);
 				engine.printGameState();
 		}
 		//
 		else if (cmd_string.compare("pr") == 0) {
 			engine.printGameState();
 		}
-
+		// tell the GUI the engine is ready
+		else if (cmd_string.compare("isready") == 0) {
+			std::cout << "readyok" << std::endl;
+		}
+		// stop thinking and return best move
+		else if (cmd_string.compare("stop") == 0) {
+			std::cout << engine.best_move.getLongAN() << std::endl;
+		}
 		// print list of possible moves
 		else if (cmd_string.compare("lm") == 0) {
 			std::vector<Move> mlist = engine.getLegalMoves();
@@ -142,7 +156,7 @@ void IO_handler::process_io() {
 			std::cout << "\tlm - list all available moves for the current player\n";
 			std::cout << "\tperft <DEPTH> - run a perft test to depth DEPTH from the current position\n";
 			std::cout << "\tsmack - talk smack\n";
-			std::cout << "\texit - close the program\n";
+			std::cout << "\tquit - close the program\n";
 		}
 		else {
 			std::cout << "cmd: " << cmd_string << " not recognized" << std::endl;
@@ -179,5 +193,5 @@ void IO_handler::respond_uci(){
 /// <param name="cmd_string"></param>
 void IO_handler::respond_go(std::string cmd_string) {
 	engine.chooseMove();
-	std::cout << "bestmove " << engine.chosen_move.getLongAN() << std::endl;
+	std::cout << "bestmove " << engine.best_move.getLongAN() << std::endl;
 }
