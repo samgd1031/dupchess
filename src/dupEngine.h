@@ -47,11 +47,13 @@ public:
 
 	Move chosen_move;
 
+	std::vector<Move> mHistory;
+	std::vector<Board> boardHistory;
+
 private:
 	std::vector<Move> mlist;
 
-	std::vector<Move> mHistory;
-	std::vector<Board> boardHistory;
+	
 
 	// move generation
 	inline void findPawnMoves(std::vector<Move>& mlist, int color, bitboard* color_mask);
