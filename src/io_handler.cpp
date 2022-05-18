@@ -178,8 +178,8 @@ void IO_handler::start() {
 /// respond to "uci" command from gui
 /// </summary>
 void IO_handler::respond_uci(){
-	std::cout << "id name DupChess" << std::endl;;
-	std::cout << "id author Sam Dupas" << std::endl;;
+	std::cout << "id name DupChess" << std::endl;
+	std::cout << "id author Sam Dupas" << std::endl;
 
 	//TODO: add options if I ever get smart enough to figure that out
 
@@ -194,4 +194,5 @@ void IO_handler::respond_uci(){
 void IO_handler::respond_go(std::string cmd_string) {
 	engine.chooseMove();
 	std::cout << "bestmove " << engine.best_move.getLongAN() << std::endl;
+	std::cout << "info string " << engine.trash_talk() << std::endl;
 }
