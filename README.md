@@ -12,4 +12,13 @@ Also passes the perft tests from various positions in this [thread](http://www.t
 Who needs evaluation when you can make random moves?
 
 ## Interface
-Built to be UCI compliant, have played a few games successfully with Arena Chess GUI
+Built to be UCI compliant, has played games successfully with Arena Chess GUI
+
+## How to Play Against Dupchess
+1. Download Arena Chess GUI [here](http://www.playwitharena.de/) and run the installer.  Any other UCI compliant GUI will also work but the rest of these instructions assume you're using Arena.
+2. Download the version of Dupchess you want to play [here](https://github.com/samgd1031/dupchess/releases).  Save the .exe file somewhere on your computer and note the location for later.
+3. Open Arena Chess GUI.
+4. Select Engines>Install New Engine
+5. Navigate to the dupchess.exe file you saved earlier.
+6. For the type of engine, select UCI.  If asked to start the engine select "Yes".
+7. Select File>New and start playing!
