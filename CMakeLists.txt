@@ -5,4 +5,5 @@ project("dupchess")
 
 add_subdirectory("main")
 add_subdirectory("src")
-#add_subdirectory("SenjoUCIAdapter/senjo")
+add_subdirectory("src/chess")
+add_subdirectory("src/nnue")
