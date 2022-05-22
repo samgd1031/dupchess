@@ -3,29 +3,38 @@
 script to parse the lichess database (https://database.lichess.org/) and add positions from it
 to the dataset used to train the neural network
 
+The path to the folder where the lichess .bx2 files should be passed as a command line argument.
+
 '''
 
 import chess
 import bz2
 import pathlib
+import sys
+import os
 
 
-MIN_AVG_ELO = 1500  # ignore games where the average elo is below this value
-ELO_FLOOR = 1000    # ignore games where either player has an elo below this value
+def process_chunk(chunk):
+    chunk_str = chunk.decode('utf-8').split('\n')
+    game_start_ind = [ii for ii, x in enumerate(chunk_str) if x.startswith("[Event")]
+    return game_start_ind
+    
 
-# get list of all bz2 files in given folder
-lichess_db_folder = "D:/dupchess_data"
-db_files = list(pathlib.Path(lichess_db_folder).glob('*.bz2'))
+if __name__ == "__main__":
+    # get list of all bz2 files in given folder
+    lichess_db_folder = sys.argv[1]
+    db_files = list(pathlib.Path(lichess_db_folder).glob('*.bz2'))
 
-# parse each bz2 file
-decomp = bz2.BZ2Decompressor()
-for file in db_files:
-    with open(file, mode='rb') as fid:
-        data = b''
-        while data == b'':
-            data = decomp.decompress(fid.read(1))
-
-        print(data.decode('utf-8'))
-        for ii in range(1):
-            data = decomp.decompress(fid.read(1))
-            print(data.decode('utf-8'))
+    # parse each bz2 file
+    max_chunk_size = 1*1024*1024
+    
+    for file in db_files:
+        bytes_processed = 0;
+        file_size = os.path.getsize(file)
+        with bz2.open(file, 'rb') as fid:
+            for ii, chunk in enumerate(iter(lambda: fid.read(max_chunk_size), "")):
+                print(process_chunk(chunk))
+                bytes_processed += len(chunk)
+                print(f"Chunk {ii+1:5d} - bytes processed: {bytes_processed/(1024*1024):.0f} MB")
+            
+                

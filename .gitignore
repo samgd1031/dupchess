@@ -37,6 +37,9 @@
 *.out
 *.app
 
+# backup files
+*.bak
+
 # python stuff
-/venv/**
+**/venv/**
 **/*.idea
