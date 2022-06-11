@@ -29,6 +29,7 @@ void process_packet(std::string pkt_data, std::bitset<32 * 8>* pfen,
 	// game result (win lose draw)
 	std::bitset<8> temp2 = std::bitset<8>(pkt_data.substr(pkt_data.length() - 39 * 8, 8));
 	*res = static_cast<short>(temp2.to_ulong());
+	if (*res == 255) { *res = -1; }
 };
 
 std::string unpack_fen(std::string* packed) {
@@ -131,12 +132,14 @@ int main(int argc, char** argv)
 
 		std::string unpacked_fen = unpack_fen(&pack_fen.to_string());
 
-		if (ii % 10000 == 0) {
-			std::cout << "pos " << ii+1 << "\t";
-			std::cout << unpacked_fen << "\tsc ";
-			std::cout << score << "\tr ";
-			std::cout << result << std::endl;
+		if ((ii == 0) || (ii+1) % 10000 == 0) {
+			std::cout << "pos " << std::setw(12) << ii + 1 << "\t";
+			std::cout << std::setw(72) << unpacked_fen << "\tsc ";
+			std::cout << std::setw(5) << score << "\tr ";
+			std::cout << std::setw(2) << result << std::endl;
 		}
+
+		output << unpacked_fen << ", " << score << ", " << result << std::endl;
 
 	}
 	
