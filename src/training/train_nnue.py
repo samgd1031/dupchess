@@ -5,6 +5,7 @@ defines the neural network in python so that training can be done with pytorch
 import torch
 import torch.nn as nn
 import os
+import ctypes
 
 INPUT_LAYER_SIZE = 40960*2  # halfKP encoding, kingSq * pieceSq * pieceType * color (64*64*5*2) times 2 --> 512
 LAYER1_SIZE = 512  # 512 --> 32
@@ -22,8 +23,8 @@ class DupchessNNUE(nn.Module):
 
     def forward(self, w_features, b_features):
         # Evaluation always from white perspective, different weights for white and black
-        input = torch.cat([w_features, b_features], dim=1)
-        accum = self.input_layer(input)  # white halfKP then black halfKP
+        features = torch.cat([w_features, b_features], dim=1)
+        accum = self.input_layer(features)  # white halfKP then black halfKP
 
         # put accumulator outputs into linear layers and use clamp for clipped ReLU
         L1_inp = torch.clamp(accum, 0.0, 1.0)
@@ -33,7 +34,19 @@ class DupchessNNUE(nn.Module):
         # return last layer output (position evaluation), does not get clamped
         return self.L3(L3_inp)
 
-
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Device Type: {device}")
+    
+    cdll = ctypes.CDLL("C:/Users/Sam/source/repos/dupchess/out/build/x64-Release/src/training/dupchess_nnue_train.dll")
+    
+    print(cdll.num_inputs())
+    
+    f_ind = (ctypes.c_int*30)()
+    val = (ctypes.c_float*30)()
+    
+    fen_str = "7k/8/8/8/8/8/3P4/K7 w"
+    
+    test = cdll.features_from_fen(fen_str, f_ind, val, 0)
+    
+    print(test)

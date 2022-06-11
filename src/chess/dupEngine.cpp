@@ -32,7 +32,7 @@ std::string DupEngine::getEngineName() {
 }
 
 std::string DupEngine::getEngineVersion() {
-	return "0.0.1";
+	return "1.0.1";
 }
 
 std::string DupEngine::getAuthorName() {
