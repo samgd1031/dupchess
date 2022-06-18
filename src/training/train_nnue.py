@@ -10,6 +10,12 @@ import cython
 import os
 
 
+# run "convert_to_wdl.py" on training data to generate this value.
+# converts the stockfish centipawn eval to win/draw/loss
+# wdl = 1 / (1 + exp(-eval / FACTOR))
+WDL_SIGMOID_FACTOR = 287
+
+
 if __name__ == "__main__":
     os.system('cls')
 
