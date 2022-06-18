@@ -5,7 +5,7 @@ from Cython.Distutils import build_ext
 
 e_mods = [
                 Extension("prepare_batch",
-                ["test.pyx", "prepare_batch.cpp"],
+                ["prepare_batch.pyx", "prepare_batch.cpp"],
                 language="c++")
 ]
 

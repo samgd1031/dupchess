@@ -22,6 +22,8 @@
 
 # visual studio shit
 **/.vs
+**/.vscode
+
 # Compiled Static libraries
 *.lai
 *.la

@@ -5,6 +5,10 @@ int num_inputs() {
 	return 64 * 64 * 5 * 2;
 }
 
+std::string echo(const std::string input, int* ii){
+	return input + " " + std::to_string(*ii);
+}
+
 /// <summary>
 /// return the index for a given feature (piece on the board)
 /// </summary>
@@ -26,8 +30,7 @@ int feature_index(int ksq, int sq, int piece_type, int color) {
 /// <param name="values"></param>
 /// <param name="king_color"></param>
 /// <returns></returns>
-int features_from_fen(char* fen_c, int* f_indexes, float* values, int king_color){
-	std::string fen(fen_c);
+int features_from_fen(const std::string fen, int* f_indexes, float* values, int king_color){
 	std::string tmp = "";
 	std::vector<std::string> splitstr;
 
@@ -59,8 +62,8 @@ int features_from_fen(char* fen_c, int* f_indexes, float* values, int king_color
 	int wk_sq, bk_sq; // king square indexes
 	int p_color[30], p_type[30], p_sq[30];
 
-	for (int rr = 7; rr >= 0; rr--) {
-		std::string frank = fen_ranks[rr];
+	for (int rr = 0; rr < 8; rr++) {
+		std::string frank = fen_ranks[7-rr];
 		int sqind = rr * 8;
 		for (int ii = 0; ii < frank.length(); ii++) {
 			char c = frank[ii];
