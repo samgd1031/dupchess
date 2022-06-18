@@ -1,7 +1,7 @@
 
 from libcpp.string cimport string
 
-cdef extern from "prepare_batch.h":
+cdef extern from "prepare_batch_funcs.h":
 	cdef int num_inputs();
 	cdef string echo(string input, int* ii);
 	cdef int feature_index(int ksq, int sq, int piece_type, int color);

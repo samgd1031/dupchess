@@ -3,7 +3,6 @@
 #include <vector>
 #include <assert.h>
 #include <string>
-#include <iostream>
 
 
 int num_inputs();
