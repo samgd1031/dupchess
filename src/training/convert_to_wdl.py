@@ -1,8 +1,6 @@
-from pickletools import read_decimalnl_long
 import sys
-from tkinter.tix import MAX
 import matplotlib.pyplot as plt
-from pprint import pp, pprint
+from pprint import pprint
 import math
 import numpy as np
 from scipy.optimize import curve_fit
