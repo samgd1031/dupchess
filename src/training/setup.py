@@ -6,6 +6,7 @@ from Cython.Distutils import build_ext
 e_mods = [
                 Extension("prepare_batch",
                 ["prep_batch.pyx", "prepare_batch_funcs.cpp"],
+                extra_compile_args=["-O2"],
                 language="c++")
 ]
 
