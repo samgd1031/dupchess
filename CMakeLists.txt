@@ -5,6 +5,6 @@ project("dupchess")
 
 add_subdirectory("main")
 add_subdirectory("src")
-add_subdirectory("src/chess")
-add_subdirectory("src/nnue")
-add_subdirectory("src/training")
+add_subdirectory("tests")
+
+include_directories("src")

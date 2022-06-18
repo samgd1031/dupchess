@@ -30,6 +30,7 @@
 
 #compile output folder
 **/out/**
+**/build/**
 
 
 # Executables
@@ -41,5 +42,7 @@
 *.bak
 
 # python stuff
-**/venv/**
+**/venv*/**
 **/*.idea
+**/__pycache__/**
+*.pyd
