@@ -12,7 +12,7 @@ cdef extern from "prepare_batch_funcs.h":
 	cdef long features_from_fen(const string fen, int* f_indexes, float* values);
 	cdef bool get_batch(int num_samples, 
 						const string filename, 
-						int* cursor, 
+						unsigned long long* cursor, 
 						vector[int] pos,
 						vector[int] features,
 						vector[float] values,
@@ -38,7 +38,7 @@ def echo_p(string input, int ii):
 def get_batch_p(num_samples, filename, start_index):
 	cdef vector[int] pos, f_list, scores
 	cdef vector[float] v_list
-	cdef int cursor_loc = start_index
+	cdef unsigned long long cursor_loc = start_index
 
 	partial_batch = get_batch(num_samples, filename.encode('utf-8'), &cursor_loc, pos, f_list, v_list, scores)
 

@@ -48,3 +48,6 @@
 **/*.idea
 **/__pycache__/**
 *.pyd
+
+# compiled cpp file in training data
+/src/training/prep_batch.cpp

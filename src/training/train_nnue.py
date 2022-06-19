@@ -24,9 +24,10 @@ WDL_SIGMOID_FACTOR = 287
 WDL_INTERP_FACTOR = 0.5
 
 MAX_EPOCHS = 1
-BATCH_SIZE = 10000
+BATCH_SIZE = 100000
 
 PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
+
 
 
 if __name__ == "__main__":
@@ -37,8 +38,8 @@ if __name__ == "__main__":
     
     dc_nnue = DupchessNNUE()
     
-    test_dl = StreamLoader(PATH_TO_TRAINING_DATA, BATCH_SIZE, 50, shuffle=False)
+    test_dl = StreamLoader(PATH_TO_TRAINING_DATA, 10000, 25, shuffle=False)
 
     for (ii, batch) in enumerate(test_dl):
-        print(f"batch {ii} - {batch[0].size()}")
+        print(f"batch {ii+1} - {batch[0].size()}")
 

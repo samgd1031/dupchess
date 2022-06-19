@@ -28,6 +28,8 @@ class StreamLoader():
             partial_batch, batch, f_cursor = pb.get_batch_p(self.batch_size, self.file, self.file_cursor)
             if partial_batch: # is EOF
                 self.is_eof = True
+                if ii < self.max_batches:
+                    self.max_batches = ii
                 break
             else:
                 self.batches.append(batch)

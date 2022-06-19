@@ -33,7 +33,7 @@ long features_from_fen(const std::string fen, int* f_indexes, float* values);
 /// returns true if end of file, false otherwise
 bool get_batch(int num_samples,
 			   const std::string filename,
-			   int* cursor, 
+			   uint64_t* cursor, 
 			   std::vector<int>& pos,
 			   std::vector<int>& features,
 			   std::vector<float>& values,

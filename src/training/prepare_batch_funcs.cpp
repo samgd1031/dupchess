@@ -128,7 +128,7 @@ long features_from_fen(const std::string fen, int* f_indexes, float* values){
 
 bool get_batch(int num_samples,
 			   const std::string filename,
-			   int* cursor, 
+			   uint64_t* cursor, 
 			   std::vector<int>& pos,
 			   std::vector<int>& features,
 			   std::vector<float>& values,
@@ -136,7 +136,7 @@ bool get_batch(int num_samples,
 	
 	// open file stream and move to start position
 	std::ifstream file(filename);
-	file.seekg(*cursor);
+	file.seekg(*cursor, file.beg);
 
 	// get requested number of lines and process them into features
 	std::string line;
@@ -144,10 +144,10 @@ bool get_batch(int num_samples,
 	int ii = 0;
 	bool partial_batch = true;
 	while(std::getline(file,line)){
-		if(ii == num_samples){
-			partial_batch = false;
-			break;
-		}
+		
+		
+		//std::cout << ii << " - " << line << "\t" << "curs: " << file.tellg() << std::endl;
+		
 		// split at comma
 		std::string tmp = "";
 		std::vector<std::string> splitstr;
@@ -170,11 +170,15 @@ bool get_batch(int num_samples,
 		// add the evaluation to the score list
 		scores.push_back(std::stoi(splitstr[1]));
 
+		if(ii == num_samples-1){
+			partial_batch = false;
+			break;
+		}
 		ii++;
 	}
 
 	// get new cursor location, close file, and return
-	*cursor = file.tellg();
+	*cursor = (uint64_t)file.tellg();
 	file.close();
 
 	return partial_batch;
