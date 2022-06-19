@@ -19,9 +19,8 @@ class DupchessNNUE(nn.Module):
         self.L2 = nn.Linear(LAYER2_SIZE, LAYER3_SIZE)
         self.L3 = nn.Linear(LAYER3_SIZE, 1)
 
-    def forward(self, w_features, b_features):
+    def forward(self, features):
         # Evaluation always from white perspective, different weights for white and black
-        features = torch.cat([w_features, b_features], dim=1)
         accum = self.input_layer(features)  # white halfKP then black halfKP
 
         # put accumulator outputs into linear layers and use clamp for clipped ReLU

@@ -30,7 +30,7 @@ int feature_index(int ksq, int sq, int piece_type, int color) {
 /// <param name="values"></param>
 /// <param name="king_color"></param>
 /// <returns></returns>
-int features_from_fen(const std::string fen, int* f_indexes, float* values, int king_color){
+long features_from_fen(const std::string fen, int* f_indexes, float* values){
 	std::string tmp = "";
 	std::vector<std::string> splitstr;
 
@@ -110,14 +110,72 @@ int features_from_fen(const std::string fen, int* f_indexes, float* values, int 
 	}
 
 	// build features now that we know all king and piece squares
-	int king_sq;
-	if (king_color == 0) { king_sq = wk_sq; }
-	else { king_sq = bk_sq; }
-
+	// white pieces first
 	for (int ii = 0; ii < n_feat; ii++) {
-		f_indexes[ii] = feature_index(king_sq, p_sq[ii], p_type[ii], p_color[ii]);
+		f_indexes[ii] = feature_index(wk_sq, p_sq[ii], p_type[ii], p_color[ii]);
 		values[ii] = 1.0f;
 	}
 
-	return n_feat;
+	// then_black
+	for (int ii = 0; ii < n_feat; ii++) {
+		// add 40960 to "append" the black perspective to the white one
+		f_indexes[n_feat + ii] = feature_index(bk_sq, p_sq[ii], p_type[ii], p_color[ii]) + 40960;
+		values[n_feat + ii] = 1.0f;
+	}
+
+	return n_feat*2;
+}
+
+bool get_batch(int num_samples,
+			   const std::string filename,
+			   int* cursor, 
+			   std::vector<int>& pos,
+			   std::vector<int>& features,
+			   std::vector<float>& values,
+			   std::vector<int>& scores){
+	
+	// open file stream and move to start position
+	std::ifstream file(filename);
+	file.seekg(*cursor);
+
+	// get requested number of lines and process them into features
+	std::string line;
+	
+	int ii = 0;
+	bool partial_batch = true;
+	while(std::getline(file,line)){
+		if(ii == num_samples){
+			partial_batch = false;
+			break;
+		}
+		// split at comma
+		std::string tmp = "";
+		std::vector<std::string> splitstr;
+		for (int ii = 0; ii < line.length(); ii++) {
+			if (line[ii] == ',') { splitstr.push_back(tmp); tmp = ""; }
+			else { tmp.push_back(line[ii]); }
+		}
+		splitstr.push_back(tmp);
+
+		int f_idx[60];
+		float vals[60];
+
+		long n_feats = features_from_fen(splitstr[0], f_idx, vals);
+		for (int jj = 0; jj < n_feats; jj++){
+			features.push_back(f_idx[jj]);
+			values.push_back(vals[jj]);
+			pos.push_back(ii);
+		}
+
+		// add the evaluation to the score list
+		scores.push_back(std::stoi(splitstr[1]));
+
+		ii++;
+	}
+
+	// get new cursor location, close file, and return
+	*cursor = file.tellg();
+	file.close();
+
+	return partial_batch;
 }

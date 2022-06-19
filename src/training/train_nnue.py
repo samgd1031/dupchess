@@ -2,12 +2,16 @@
 Trains neural net using pytorch and c++/cython for loading training data
 '''
 
+import enum
+from turtle import shape
 import torch
-from dupchess_nnue import DupchessNNUE
-import prepare_batch as pb
+from dupchess_nnue import DupchessNNUE, INPUT_LAYER_SIZE
+from streamloader import StreamLoader
 import numpy as np
+import prepare_batch as pb
 import cython
 import os
+from pprint import pprint
 
 
 # run "convert_to_wdl.py" on training data to generate this value.
@@ -15,20 +19,26 @@ import os
 # wdl = 1 / (1 + exp(-eval / FACTOR))
 WDL_SIGMOID_FACTOR = 287
 
+# when calcluating loss, this factor will be used to interpolate between the cp eval and wdl result of the position
+# 0 = only use CP EVAL, 1.0 = only use WDL RESULT
+WDL_INTERP_FACTOR = 0.5
+
+MAX_EPOCHS = 1
+BATCH_SIZE = 10000
+
+PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
+
 
 if __name__ == "__main__":
     os.system('cls')
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Device Type: {device}")
+    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Device Type: {dev}")
     
     dc_nnue = DupchessNNUE()
     
-    #print(dc_nnue)
-    
+    test_dl = StreamLoader(PATH_TO_TRAINING_DATA, BATCH_SIZE, 50, shuffle=False)
 
-    fenstr = "6kq/pppppppp/8/8/8/8/pNBRQ3/K7 w - - 0 1".encode('utf-8')
+    for (ii, batch) in enumerate(test_dl):
+        print(f"batch {ii} - {batch[0].size()}")
 
-    n_feats, feats, vals = pb.features_from_fen_p(fenstr, 0)
-    print(feats[:n_feats])
-    
