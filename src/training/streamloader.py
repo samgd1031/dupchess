@@ -37,3 +37,7 @@ class StreamLoader():
     def __len__(self):
         # return length of batch buffer
         return len(self.batches)
+
+    def reset(self):
+        self.file_cursor = 0
+        self.is_eof = False

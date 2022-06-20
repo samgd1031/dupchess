@@ -22,7 +22,7 @@ WDL_SIGMOID_FACTOR = 287
 WDL_INTERP_FACTOR = 0.5
 '''
 
-MAX_EPOCHS = 1
+MAX_EPOCHS = 10
 BATCH_SIZE = 10000
 BUFFER_SIZE = 25 # batches to buffer in StreamLoader each with BATCH_SIZE samples
 
@@ -75,33 +75,38 @@ if __name__ == "__main__":
         dload_thread.start()
     
         print('Starting training run')
-        batch_iter = 1
-        while not train_dl.is_eof:
-            condition.wait()
-            batch_group = train_dl.batches
-            dload_thread.needs_update = True
+        for epoch in range(MAX_EPOCHS):
+            batch_iter = 1
+            train_dl.reset()
+            while not train_dl.is_eof:
+                condition.wait()
+                batch_group = train_dl.batches
+                dload_thread.needs_update = True
 
-            for features, sf_evals_cp in batch_group:
-                # send data to gpu
-                features = features.to(device)
-                sf_evals_cp = sf_evals_cp.to(device)
-                sf_evals_wdl = torch.sigmoid( sf_evals_cp / WDL_SIGMOID_FACTOR)
+                for features, sf_evals_cp in batch_group:
+                    # send data to gpu
+                    features = features.to(device)
+                    sf_evals_cp = sf_evals_cp.to(device)
+                    sf_evals_wdl = torch.sigmoid( sf_evals_cp / WDL_SIGMOID_FACTOR)
+                    
+                    # run features forward through network
+                    model_eval_cp = dc_nnue.forward(features)
+                    # convert from centipawn to win/draw/loss
+                    model_eval_wdl = torch.sigmoid(model_eval_cp / WDL_SIGMOID_FACTOR)
+
+                    # loss function (mean squared error between dupchess and SF in WDL space)
+                    # TODO: incorporate raw game result
+                    loss = criterion(model_eval_wdl, sf_evals_wdl.reshape(BATCH_SIZE,1))
+
+                    # backpropagate and optimize
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+
+                    if batch_iter % 100 == 0:
+                        print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.4f}")
+                    batch_iter += 1
+
+            # save model parameters at end of epoch
+            torch.save(dc_nnue.model_state_dict(), f'/weights/weights_ep{epoch:02d}')
                 
-                # run features forward through network
-                model_eval_cp = dc_nnue.forward(features)
-                # convert from centipawn to win/draw/loss
-                model_eval_wdl = torch.sigmoid(model_eval_cp / WDL_SIGMOID_FACTOR)
-
-                # loss function (mean squared error between dupchess and SF in WDL space)
-                # TODO: incorporate raw game result
-                loss = criterion(model_eval_wdl, sf_evals_wdl.reshape(BATCH_SIZE,1))
-
-                # backpropagate and optimize
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-
-                if batch_iter % 100 == 0:
-                    print(f"step {batch_iter:8d} - loss: {loss.item():4f}")
-                batch_iter += 1
-            
