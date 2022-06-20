@@ -75,7 +75,7 @@ if __name__ == "__main__":
         dload_thread.start()
     
         print('Starting training run')
-        for epoch in range(MAX_EPOCHS):
+        for epoch in range(1,MAX_EPOCHS+1):
             batch_iter = 1
             train_dl.reset()
             while not train_dl.is_eof:
