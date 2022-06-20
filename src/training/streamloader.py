@@ -22,10 +22,8 @@ class StreamLoader():
         self.is_eof = False
 
     def refresh_buffer(self):
-
-        self.buf_cursor = 0
-        n_new = self.max_batches - len(self)
-        for ii in range(n_new):
+        self.batches = []
+        for ii in range(self.max_batches):
             partial_batch, batch, f_cursor = pb.get_batch_p(self.batch_size, self.file, self.file_cursor, self.shuffle, self.rgen)
             if partial_batch: # is EOF
                 self.is_eof = True

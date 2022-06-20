@@ -3,10 +3,9 @@ Trains neural net using pytorch and c++/cython for loading training data
 '''
 
 import torch
-from dupchess_nnue import DupchessNNUE, INPUT_LAYER_SIZE
+from dupchess_nnue import DupchessNNUE
 from streamloader import StreamLoader
 import os
-from pprint import pprint
 import threading
 
 
@@ -24,11 +23,12 @@ WDL_INTERP_FACTOR = 0.5
 
 MAX_EPOCHS = 10
 BATCH_SIZE = 10000
-BUFFER_SIZE = 25 # batches to buffer in StreamLoader each with BATCH_SIZE samples
+BUFFER_SIZE = 5 # batches to buffer in StreamLoader each with BATCH_SIZE samples
 
 LEARNING_RATE = 0.001
 
-PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
+#PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
+PATH_TO_TRAINING_DATA = "C:/dupchess_data/combined_dataset_processed.dat"
 
 class loaderThread(threading.Thread):
     def __init__(self, name, loader, condition):
