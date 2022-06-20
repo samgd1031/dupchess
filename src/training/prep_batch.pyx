@@ -35,13 +35,19 @@ def features_from_fen_p(const string fen_str):
 def echo_p(string input, int ii):
 	return echo(input, &ii)
 
-def get_batch_p(num_samples, filename, start_index):
+def get_batch_p(num_samples, filename, start_index, shuffle=False, rgen=None):
 	cdef vector[int] pos, f_list, scores
 	cdef vector[float] v_list
 	cdef unsigned long long cursor_loc = start_index
 
 	partial_batch = get_batch(num_samples, filename.encode('utf-8'), &cursor_loc, pos, f_list, v_list, scores)
 
+	if shuffle:
+		shuf_inds = torch.randperm(len(scores), generator=rgen)
+		pos = [shuf_inds[ii] for ii in pos]
+		scores = [scores[ii] for ii in shuf_inds]
+
 	T = torch.sparse_coo_tensor(indices=[pos, f_list], values=v_list, size=(num_samples,40960*2))
 	T.is_coalesced = True
-	return partial_batch, (T, scores), cursor_loc
+	scores_tensor = torch.tensor(scores)
+	return partial_batch, (T, scores_tensor), cursor_loc
