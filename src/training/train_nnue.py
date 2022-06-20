@@ -24,9 +24,9 @@ WDL_INTERP_FACTOR = 0.5
 
 MAX_EPOCHS = 1
 BATCH_SIZE = 10000
-BUFFER_SIZE = 5 # batches to buffer in StreamLoader each with BATCH_SIZE samples
+BUFFER_SIZE = 25 # batches to buffer in StreamLoader each with BATCH_SIZE samples
 
-LEARNING_RATE = 0.5
+LEARNING_RATE = 0.001
 
 PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
 
