@@ -9,13 +9,14 @@ import os
 from pprint import pprint
 import threading
 
-'''
-PARAMETERS FOR CONVERSION TO WIN/DRAW/LOSS SPACE
+
+# PARAMETERS FOR CONVERSION TO WIN/DRAW/LOSS SPACE
 # run "convert_to_wdl.py" on training data to generate this value.
 # converts the stockfish centipawn eval to win/draw/loss
 # wdl = 1 / (1 + exp(-eval / FACTOR))
 WDL_SIGMOID_FACTOR = 287
 
+'''
 # when calcluating loss, this factor will be used to interpolate between the cp eval and wdl result of the position
 # 0 = only use CP EVAL, 1.0 = only use WDL RESULT
 WDL_INTERP_FACTOR = 0.5
@@ -23,7 +24,7 @@ WDL_INTERP_FACTOR = 0.5
 
 MAX_EPOCHS = 1
 BATCH_SIZE = 10000
-BUFFER_SIZE = 50 # batches to buffer in StreamLoader each with BATCH_SIZE samples
+BUFFER_SIZE = 5 # batches to buffer in StreamLoader each with BATCH_SIZE samples
 
 LEARNING_RATE = 0.5
 
@@ -73,6 +74,7 @@ if __name__ == "__main__":
         dload_thread = loaderThread('training loader', train_dl, condition)
         dload_thread.start()
     
+        print('Starting training run')
         batch_iter = 1
         while not train_dl.is_eof:
             condition.wait()
@@ -80,30 +82,26 @@ if __name__ == "__main__":
             dload_thread.needs_update = True
 
             for features, sf_evals_cp in batch_group:
-                if features is not None:
-                    # send data to gpu
-                    features = features.to(device)
-                    sf_evals_cp = sf_evals_cp * 1.0
-                    sf_evals_cp = sf_evals_cp.to(device)
-                    #sf_evals_wdl = torch.sigmoid( sf_evals_cp / WDL_SIGMOID_FACTOR)
-                    
-                    # run features forward through network
-                    model_eval_cp = dc_nnue.forward(features)
-                    # convert from centipawn to win/draw/loss
-                    #model_eval_wdl = torch.sigmoid(model_eval_cp / WDL_SIGMOID_FACTOR)
+                # send data to gpu
+                features = features.to(device)
+                sf_evals_cp = sf_evals_cp.to(device)
+                sf_evals_wdl = torch.sigmoid( sf_evals_cp / WDL_SIGMOID_FACTOR)
+                
+                # run features forward through network
+                model_eval_cp = dc_nnue.forward(features)
+                # convert from centipawn to win/draw/loss
+                model_eval_wdl = torch.sigmoid(model_eval_cp / WDL_SIGMOID_FACTOR)
 
-                    # loss function (mean squared error between dupchess and SF in WDL space)
-                    # TODO: incorporate raw game result
-                    # for now just uses centipawn score
-                    loss = criterion(model_eval_cp, sf_evals_cp.reshape(BATCH_SIZE,1))
-                    #loss = criterion(model_eval_wdl, sf_evals_wdl.reshape(BATCH_SIZE,1))
+                # loss function (mean squared error between dupchess and SF in WDL space)
+                # TODO: incorporate raw game result
+                loss = criterion(model_eval_wdl, sf_evals_wdl.reshape(BATCH_SIZE,1))
 
-                    # backpropagate and optimize
-                    optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
+                # backpropagate and optimize
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-                    if batch_iter % 100 == 0:
-                        print(f"step {batch_iter:8d} - loss: {loss.item():4f}")
-                    batch_iter += 1
+                if batch_iter % 100 == 0:
+                    print(f"step {batch_iter:8d} - loss: {loss.item():4f}")
+                batch_iter += 1
             
