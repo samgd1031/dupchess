@@ -21,11 +21,11 @@ WDL_SIGMOID_FACTOR = 287
 WDL_INTERP_FACTOR = 0.5
 '''
 
-MAX_EPOCHS = 10
-BATCH_SIZE = 10000
+MAX_EPOCHS = 5
+BATCH_SIZE = 50000
 BUFFER_SIZE = 5 # batches to buffer in StreamLoader each with BATCH_SIZE samples
 
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.01
 
 #PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
 PATH_TO_TRAINING_DATA = "C:/dupchess_data/combined_dataset_processed.dat"
@@ -61,10 +61,9 @@ if __name__ == "__main__":
     
     print("intializing neural network...")
     dc_nnue = DupchessNNUE()
-    criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(dc_nnue.parameters(), lr=LEARNING_RATE)
-    print('Sending network to gpu')
     dc_nnue = dc_nnue.to(device)
+    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.SGD(dc_nnue.parameters(), lr=LEARNING_RATE)    
 
     print('setting up stream to training data')
     train_dl = StreamLoader(PATH_TO_TRAINING_DATA, BATCH_SIZE, BUFFER_SIZE, shuffle=True)
@@ -88,7 +87,8 @@ if __name__ == "__main__":
                     features = features.to(device)
                     sf_evals_cp = sf_evals_cp.to(device)
                     sf_evals_wdl = torch.sigmoid( sf_evals_cp / WDL_SIGMOID_FACTOR)
-                    
+
+
                     # run features forward through network
                     model_eval_cp = dc_nnue.forward(features)
                     # convert from centipawn to win/draw/loss
@@ -103,10 +103,10 @@ if __name__ == "__main__":
                     loss.backward()
                     optimizer.step()
 
-                    if batch_iter % 100 == 0:
+                    if batch_iter % BUFFER_SIZE == 0:
                         print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.4f}")
                     batch_iter += 1
 
             # save model parameters at end of epoch
-            torch.save(dc_nnue.model_state_dict(), f'/weights/weights_ep{epoch:02d}')
+            torch.save(dc_nnue.state_dict(), f'/weights/weights_ep{epoch:02d}')
                 
