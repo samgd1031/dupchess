@@ -1,18 +1,18 @@
 from setuptools import setup
-from Cython.Build import cythonize
 from setuptools.extension import Extension
 from Cython.Distutils import build_ext
 
-e_mods = [
-                Extension("prepare_batch",
-                ["prep_batch.pyx", "prepare_batch_funcs.cpp"],
-                extra_compile_args=["-O2"],
-                language="c++")
+ext_mods = [
+    Extension("speedloader",
+            ['speedloader.pyx', "load_batch_funcs.cpp"],
+            language="c++",
+            extra_compile_args=['-O2', "/openmp", "/std:c++17"],
+            extra_link_args=["-std=c++17"])
 ]
 
 setup(
-	name="data loader",
-    cmdclass = {"build_ext": build_ext},
-	ext_modules=e_mods,
-	zip_safe=False
-	)
+    name="speedloader",
+    cmdclass={"build_ext": build_ext},
+    ext_modules=ext_mods,
+    zip_safe=False
+)

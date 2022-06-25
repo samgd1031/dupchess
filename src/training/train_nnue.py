@@ -4,7 +4,7 @@ Trains neural net using pytorch and c++/cython for loading training data
 
 import torch
 from dupchess_nnue import DupchessNNUE
-from streamloader import StreamLoader
+import speedloader as sl
 import os
 import threading
 
@@ -22,19 +22,30 @@ WDL_INTERP_FACTOR = 0.5
 '''
 
 MAX_EPOCHS = 5
-BATCH_SIZE = 50000
-BUFFER_SIZE = 5 # batches to buffer in StreamLoader each with BATCH_SIZE samples
+BATCH_SIZE = 100
+BUFFER_SIZE = 5 # batches to buffer each with BATCH_SIZE samples
 
 LEARNING_RATE = 0.01
 
 #PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
-PATH_TO_TRAINING_DATA = "C:/dupchess_data/combined_dataset_processed.dat"
+#PATH_TO_TRAINING_DATA = "C:/dupchess_data/combined_dataset_processed.dat"
+PATH_TO_TRAINING_DATA = "C:/Users/Sam/source/repos/dataloader/data/sample_1000_lines.dat"
+N_LOADER_THREADS = 1
 
 class loaderThread(threading.Thread):
-    def __init__(self, name, loader, condition):
+    def __init__(self, name, filename, n_threads, n_batches, batch_size,condition):
         super().__init__(daemon=True)
         self.name = name
-        self.str_loader = loader
+        self.filename = filename
+        self.n_threads = n_threads
+        self.n_batches = n_batches
+        self.batch_size = batch_size
+        self.input_features = []
+        self.sf_evals = []
+        self.results = []
+
+        self.file_counter = 0
+        self.is_eof = False
         
         self._cond = condition
         self.needs_update = True
@@ -42,7 +53,11 @@ class loaderThread(threading.Thread):
     def run(self):
         while True:
             if self.needs_update:
-                self.str_loader.refresh_buffer()
+                self.input_features, self.sf_evals, self.results, self.file_counter, self.is_eof = sl.loader_main_p(self.filename, 
+                                                                                                       self.n_threads,
+                                                                                                       self.n_batches,
+                                                                                                       self.batch_size,
+                                                                                                       self.file_counter)
                 self.needs_update = False
             else:
                 with self._cond:
@@ -66,25 +81,30 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(dc_nnue.parameters(), lr=LEARNING_RATE)    
 
     print('setting up stream to training data')
-    train_dl = StreamLoader(PATH_TO_TRAINING_DATA, BATCH_SIZE, BUFFER_SIZE, shuffle=True)
 
     print("initializing training loader thread...")
     with condition:
-        dload_thread = loaderThread('training loader', train_dl, condition)
+        dload_thread = loaderThread('training loader', PATH_TO_TRAINING_DATA, N_LOADER_THREADS, BUFFER_SIZE, BATCH_SIZE, condition)
         dload_thread.start()
     
         print('Starting training run')
         for epoch in range(1,MAX_EPOCHS+1):
             batch_iter = 1
-            train_dl.reset()
-            while not train_dl.is_eof:
+            
+            while not dload_thread.is_eof:
                 condition.wait()
-                batch_group = train_dl.batches
+                features = dload_thread.input_features
+                evals = dload_thread.sf_evals
+                res = dload_thread.results
                 dload_thread.needs_update = True
 
-                for features, sf_evals_cp in batch_group:
+                for ii in range(len(features)):
+                    inpt = features[ii]
+                    sf_evals_cp = evals[ii]
+                    game_results = res[ii]
+
                     # send data to gpu
-                    features = features.to(device)
+                    inpt = inpt.to(device)
                     sf_evals_cp = sf_evals_cp.to(device)
                     sf_evals_wdl = torch.sigmoid( sf_evals_cp / WDL_SIGMOID_FACTOR)
 
