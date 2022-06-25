@@ -30,8 +30,12 @@ def loader_main_p(file_n, n_threads, n_batches, batch_size, counter, shuffle=Fal
     is_eof = loader_main(file_n.encode('utf-8'), n_threads, n_batches, batch_size, pos, f_list, v_list, scores, results, counter_c)
 
     T = []
+    scores_list = []
+    res_list = []
     for ii, p in enumerate(pos):
-        num_samples = len(p)
-        T.append(torch.sparse_coo_tensor(indices=[pos[ii], f_list[ii]], values=v_list[ii], size=(num_samples,40960*2)))
+        T.append(torch.sparse_coo_tensor(indices=[pos[ii], f_list[ii]], values=v_list[ii], size=(batch_size,40960*2)))
+        scores_list.append(torch.tensor(scores[ii*batch_size:(ii+1)*batch_size]))
+        res_list.append(torch.tensor(results[ii*batch_size:(ii+1)*batch_size]))
+        
 
-    return T, torch.tensor(scores), torch.tensor(results), counter_c, is_eof
+    return T, scores_list, res_list, counter_c, is_eof

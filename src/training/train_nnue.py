@@ -22,15 +22,16 @@ WDL_INTERP_FACTOR = 0.5
 '''
 
 MAX_EPOCHS = 5
-BATCH_SIZE = 100
-BUFFER_SIZE = 5 # batches to buffer each with BATCH_SIZE samples
+BATCH_SIZE = 128
+BUFFER_SIZE = 256 # batches to buffer each with BATCH_SIZE samples
 
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.0001
+N_FIRST_BATCH_REPEAT = 20  # number of iterations to train on the first batches to start the network
 
-#PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat"
+PATH_TO_TRAINING_DATA = "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed_shuffled.dat"
 #PATH_TO_TRAINING_DATA = "C:/dupchess_data/combined_dataset_processed.dat"
-PATH_TO_TRAINING_DATA = "C:/Users/Sam/source/repos/dataloader/data/sample_1000_lines.dat"
-N_LOADER_THREADS = 1
+#PATH_TO_TRAINING_DATA = "C:/Users/Sam/source/repos/dataloader/data/sample_1000_lines.dat"
+N_LOADER_THREADS = 8
 
 class loaderThread(threading.Thread):
     def __init__(self, name, filename, n_threads, n_batches, batch_size,condition):
@@ -78,9 +79,7 @@ if __name__ == "__main__":
     dc_nnue = DupchessNNUE()
     dc_nnue = dc_nnue.to(device)
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.SGD(dc_nnue.parameters(), lr=LEARNING_RATE)    
-
-    print('setting up stream to training data')
+    optimizer = torch.optim.AdamW(dc_nnue.parameters(), lr=LEARNING_RATE)
 
     print("initializing training loader thread...")
     with condition:
@@ -91,6 +90,7 @@ if __name__ == "__main__":
         for epoch in range(1,MAX_EPOCHS+1):
             batch_iter = 1
             
+
             while not dload_thread.is_eof:
                 condition.wait()
                 features = dload_thread.input_features
@@ -98,6 +98,37 @@ if __name__ == "__main__":
                 res = dload_thread.results
                 dload_thread.needs_update = True
 
+                # preconditioning
+                if epoch == 1 and batch_iter == 1:
+                    print('Preconditioning with first batch')
+                    for ii in range(N_FIRST_BATCH_REPEAT*BATCH_SIZE):
+                        inpt = features[ii % BATCH_SIZE]
+                        sf_evals_cp = evals[ii % BATCH_SIZE]
+                        game_results = res[ii % BATCH_SIZE]
+
+                        # send data to gpu
+                        inpt = inpt.to(device)
+                        sf_evals_cp = sf_evals_cp.to(device)
+                        sf_evals_wdl = torch.sigmoid( sf_evals_cp / WDL_SIGMOID_FACTOR)
+
+
+                        # run features forward through network
+                        # model output is in win-draw-loss format
+                        model_eval_wdl = dc_nnue.forward(inpt)
+
+                        # loss function (mean squared error between dupchess and SF in WDL space)
+                        # TODO: incorporate raw game result
+                        loss = criterion(model_eval_wdl, sf_evals_wdl.reshape(BATCH_SIZE,1))
+
+                        # backpropagate and optimize
+                        loss.backward()
+                        optimizer.step()
+                        optimizer.zero_grad()
+
+                        if (ii+1) % 100 == 0:
+                            print(f"epoch {epoch:<3d} - step 0.{ii+1:<8d} - loss: {loss.item():0.8f}")
+
+                # normal training
                 for ii in range(len(features)):
                     inpt = features[ii]
                     sf_evals_cp = evals[ii]
@@ -110,7 +141,7 @@ if __name__ == "__main__":
 
 
                     # run features forward through network
-                    model_eval_cp = dc_nnue.forward(features)
+                    model_eval_cp = dc_nnue.forward(inpt)
                     # convert from centipawn to win/draw/loss
                     model_eval_wdl = torch.sigmoid(model_eval_cp / WDL_SIGMOID_FACTOR)
 
@@ -123,8 +154,8 @@ if __name__ == "__main__":
                     loss.backward()
                     optimizer.step()
 
-                    if batch_iter % BUFFER_SIZE == 0:
-                        print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.4f}")
+                    if batch_iter % 100 == 0:
+                        print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.8f}")
                     batch_iter += 1
 
             # save model parameters at end of epoch
