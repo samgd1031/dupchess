@@ -1,0 +1,17 @@
+{
+    "MAX_EPOCHS": 100,
+    "BATCH_SIZE": 1024,
+    "BUFFER_SIZE": 32,
+
+    "WDL_SIGMOID_FACTOR": 287,
+
+    "LOSS_FUNCTION": "MSE",
+    "OPTIMIZER": "ADAM_W",
+    "LEARNING_RATE": 0.0001,
+
+    "PATH_TO_TRAINING_DATA": "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed_shuffled.dat",
+    "PATH_TO_VAL_DATA": "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat",
+    "NUM_VAL_BATCHES": 4096,
+    "WEIGHTS_PATH": "D:/dupchess/src/training/weights",
+    "N_LOADER_THREADS": 4
+}

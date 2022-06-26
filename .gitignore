@@ -51,3 +51,6 @@
 
 # compiled cpp file in training data
 /src/training/prep_batch.cpp
+
+# tensorboard
+/src/training/runs/**
