@@ -54,3 +54,6 @@
 
 # tensorboard
 /src/training/runs/**
+
+# intermediate training weights
+/src/training/weights/**
