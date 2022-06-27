@@ -13,5 +13,6 @@
     "PATH_TO_VAL_DATA": "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat",
     "NUM_VAL_BATCHES": 8192,
     "WEIGHTS_PATH": "D:/dupchess/src/training/weights",
-    "N_LOADER_THREADS": 8
+    "N_LOADER_THREADS": 8,
+    "RUN_DESC": "RUN1_200EP"
 }

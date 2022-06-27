@@ -12,6 +12,7 @@ import os
 import sys
 import json
 import time
+from datetime import datetime, tzinfo
 import threading
 
 
@@ -54,7 +55,8 @@ class loaderThread(threading.Thread):
         
 if __name__ == "__main__":
     os.system('cls')
-    
+    now = datetime.utcnow()
+    dt_string = now.strftime("%d%m%Y_%H%M%S_UTC")
     if not len(sys.argv) == 2:
         print(f"Wrong number of command line arguments (received {len(sys.argv)-1}, should be 1)")
         print("\tArgument must be a file path to json file with model run options")
@@ -104,7 +106,7 @@ if __name__ == "__main__":
         raise TypeError(f"'ADAM_W' and 'SGD' are only supported optimizers at the moment, received '{hp['OPTIMIZER']}'.")
 
     print("Setting up Tensorboard writer...")
-    writer = SummaryWriter("runs/")
+    writer = SummaryWriter(f"runs/{hp['RUN_DESC']}_{dt_string}/")
 
     print("initializing training loader thread...")
     with condition:
@@ -208,5 +210,5 @@ if __name__ == "__main__":
 
             # save model parameters at end of epoch
             print(f"Saving model weights for epoch {epoch}")
-            torch.save(dc_nnue.state_dict(), f'{WEIGHTS_PATH}/weights_ep{epoch:02d}.pth')
+            torch.save(dc_nnue.state_dict(), f'{WEIGHTS_PATH}/{hp["RUN_DESC"]}_ep{epoch:02d}.pth')
                 
