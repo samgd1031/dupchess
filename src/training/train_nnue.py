@@ -112,14 +112,13 @@ if __name__ == "__main__":
         tr_loader.start()
     
         print('Starting training run')
-        total_iter = 1
+        global_iter = 1
         for epoch in range(1,MAX_EPOCHS+1):
             batch_iter = 1
             
             tr_loader.reset()
-            while not tr_loader.is_eof:
-                start = time.perf_counter_ns()
-                
+            start = time.perf_counter_ns()
+            while not tr_loader.is_eof:                
                 condition.wait()
                 features = tr_loader.input_features
                 evals = tr_loader.sf_evals
@@ -154,13 +153,13 @@ if __name__ == "__main__":
 
                     if batch_iter % 100 == 0:
                         end = time.perf_counter_ns()
-                        elapsed = (end - start) / 1e3  # microseconds
+                        elapsed = (end - start) / 1e6  # milliseconds
                         time_per_step = elapsed / 100.0
                         start = end
-                        writer.add_scalar("Loss/train", loss.item(), total_iter)
-                        print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.6f} - {time_per_step:0.1f} us/batch")
+                        writer.add_scalar("Loss/train", loss.item(), global_iter)
+                        print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.6f} - {time_per_step:0.1f} ms/batch")
                     batch_iter += 1
-                    total_iter += 1
+                    global_iter += 1
 
             
             # validate at end of epoch
@@ -205,7 +204,7 @@ if __name__ == "__main__":
                 # average the loss over number of entries
                 val_loss = running_loss / val_batches_processed
                 print(f"Validation loss for epoch {epoch}: {val_loss:0.6f}")
-                writer.add_scalar("Loss/validation", val_loss, total_iter)
+                writer.add_scalar("Loss/validation", val_loss, global_iter)
 
             # save model parameters at end of epoch
             print(f"Saving model weights for epoch {epoch}")

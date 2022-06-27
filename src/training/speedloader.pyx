@@ -1,8 +1,11 @@
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp cimport bool
+from libc cimport stdint
 
 import torch
+
+ctypedef stdint.uint64_t uint64_t
 
 cdef extern from "load_batch_funcs.h":
     cdef void parallel_hello(int n_threads);
@@ -12,7 +15,7 @@ cdef extern from "load_batch_funcs.h":
                         vector[vector[float]] vals,
                         vector[int] scores,
                         vector[float] results,
-                        int& counter);
+                        uint64_t& counter);
 
 def par_hello_p(n_threads):
     parallel_hello(n_threads)
@@ -23,7 +26,7 @@ def loader_main_p(file_n, n_threads, n_batches, batch_size, counter, shuffle=Fal
     cdef vector[int] scores
     cdef vector [float] results
     cdef vector[vector[float]] v_list
-    cdef int counter_c
+    cdef uint64_t counter_c
 
     counter_c = counter
 

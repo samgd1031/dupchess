@@ -19,7 +19,7 @@ bool loader_main(std::string filename, int n_threads, int n_batches, int batch_s
 																					 std::vector<std::vector<float>>& vals,
 																					 std::vector<int>& scores,
 																					 std::vector<float>& results,
-																					 int& counter){
+																					 uint64_t& counter){
 	// open file for reading
 	std::ifstream infile;
 	infile.open(filename, std::ios::in);
