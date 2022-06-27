@@ -154,11 +154,11 @@ if __name__ == "__main__":
 
                     if batch_iter % 100 == 0:
                         end = time.perf_counter_ns()
-                        elapsed = (end - start) / 1e6  # milliseconds
-                        time_per_step = elapsed/(BUFFER_SIZE)
+                        elapsed = (end - start) / 1e3  # microseconds
+                        time_per_step = elapsed / 100.0
                         start = end
                         writer.add_scalar("Loss/train", loss.item(), total_iter)
-                        print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.6f} - {time_per_step:0.1f} ms/batch")
+                        print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.6f} - {time_per_step:0.1f} us/batch")
                     batch_iter += 1
                     total_iter += 1
 

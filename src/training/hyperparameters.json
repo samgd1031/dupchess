@@ -1,5 +1,5 @@
 {
-    "MAX_EPOCHS": 100,
+    "MAX_EPOCHS": 200,
     "BATCH_SIZE": 1024,
     "BUFFER_SIZE": 8,
 
@@ -11,7 +11,7 @@
 
     "PATH_TO_TRAINING_DATA": "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed_shuffled.dat",
     "PATH_TO_VAL_DATA": "D:/dupchess_data/stockfish_training_set/data__d9/combined/combined_dataset_processed.dat",
-    "NUM_VAL_BATCHES": 4096,
+    "NUM_VAL_BATCHES": 8192,
     "WEIGHTS_PATH": "D:/dupchess/src/training/weights",
     "N_LOADER_THREADS": 8
 }
