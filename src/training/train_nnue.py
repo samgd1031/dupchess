@@ -113,7 +113,7 @@ if __name__ == "__main__":
         raise TypeError(f"'ADAM_W' and 'SGD' are only supported optimizers at the moment, received '{hp['OPTIMIZER']}'.")
 
     print("Setting up Tensorboard writer...")
-    writer = SummaryWriter(f"src/training/runs/{hp['RUN_DESC']}_{dt_string}/")
+    writer = SummaryWriter(f"runs/{hp['RUN_DESC']}_{dt_string}/")
 
     print("initializing training loader thread...")
     with condition:
