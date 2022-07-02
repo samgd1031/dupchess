@@ -38,22 +38,22 @@ bool loader_main(std::string filename, int n_threads, int n_batches, int batch_s
 		std::vector<float> batch_results;
 		#pragma omp critical (file_read)
 		{
-			auto begin = std::chrono::high_resolution_clock::now();
+			//auto begin = std::chrono::high_resolution_clock::now();
 			fens.reserve(batch_size);
 			sf_evals.reserve(batch_size);
 			batch_results.reserve(batch_size);
 
 			is_eof = load_from_file(&infile, batch_size, &fens, &sf_evals, &batch_results);
 
-			auto end = std::chrono::high_resolution_clock::now();
-			auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+			//auto end = std::chrono::high_resolution_clock::now();
+			//auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 			//printf("Thread %d - I took %0.3f ms to read %zd lines (%0.3f us per line)\n", omp_get_thread_num(), elapsed.count() / 1e3, fens.size(), (float)elapsed.count() / batch_size);
 			should_process = !is_eof; // assign here so that the value of is_eof isn't changed by anotehr thread
 		}
 
 		// processing can happen in parallel
 		if (should_process) {
-			auto begin = std::chrono::high_resolution_clock::now();
+			//auto begin = std::chrono::high_resolution_clock::now();
 			//printf("Thread %d - Processing batch of size %d...\n", omp_get_thread_num(), batch_size);
 
 			std::vector<int> pos_temp, feat_temp;
@@ -79,8 +79,8 @@ bool loader_main(std::string filename, int n_threads, int n_batches, int batch_s
 				scores.insert(scores.end(), sf_evals.begin(), sf_evals.end());
 				results.insert(results.end(), batch_results.begin(), batch_results.end());
 			}
-			auto end = std::chrono::high_resolution_clock::now();
-			auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+			//auto end = std::chrono::high_resolution_clock::now();
+			//auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 			//printf("Thread %d - Done in %0.3f ms\n", omp_get_thread_num(), elapsed.count() / 1e3);
 
 			

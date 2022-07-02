@@ -37,12 +37,13 @@ class loaderThread(threading.Thread):
     def run(self):
         while True:
             if self.needs_update:
-                self.input_features, self.sf_evals, self.results, self.file_counter, self.is_eof = sl.loader_main_p(self.filename, 
-                                                                                                       self.n_threads,
-                                                                                                       self.n_batches,
-                                                                                                       self.batch_size,
-                                                                                                       self.file_counter)
-                self.needs_update = False
+                with self._cond:
+                    self.input_features, self.sf_evals, self.results, self.file_counter, self.is_eof = sl.loader_main_p(self.filename, 
+                                                                                                        self.n_threads,
+                                                                                                        self.n_batches,
+                                                                                                        self.batch_size,
+                                                                                                        self.file_counter)
+                    self.needs_update = False
             else:
                 with self._cond:
                     self._cond.notify()
@@ -50,6 +51,12 @@ class loaderThread(threading.Thread):
     def reset(self):
         self.file_counter = 0
         self.is_eof = False
+
+    def finished_updating(self):
+        return not self.needs_update
+
+    def has_reached_eof(self):
+        return self.is_eof
 
 
         
@@ -106,7 +113,7 @@ if __name__ == "__main__":
         raise TypeError(f"'ADAM_W' and 'SGD' are only supported optimizers at the moment, received '{hp['OPTIMIZER']}'.")
 
     print("Setting up Tensorboard writer...")
-    writer = SummaryWriter(f"runs/{hp['RUN_DESC']}_{dt_string}/")
+    writer = SummaryWriter(f"src/training/runs/{hp['RUN_DESC']}_{dt_string}/")
 
     print("initializing training loader thread...")
     with condition:
@@ -114,14 +121,14 @@ if __name__ == "__main__":
         tr_loader.start()
     
         print('Starting training run')
-        global_iter = 1
+        global_iter = 0  # not totally sure why this is zero and batch_iter is 1, but seems to keep the count correct across epochs
         for epoch in range(1,MAX_EPOCHS+1):
             batch_iter = 1
             
             tr_loader.reset()
             start = time.perf_counter_ns()
-            while not tr_loader.is_eof:                
-                condition.wait()
+            while not tr_loader.has_reached_eof(): 
+                condition.wait_for(tr_loader.finished_updating)
                 features = tr_loader.input_features
                 evals = tr_loader.sf_evals
                 res = tr_loader.results
@@ -159,13 +166,17 @@ if __name__ == "__main__":
                         time_per_step = elapsed / 100.0
                         start = end
                         writer.add_scalar("Loss/train", loss.item(), global_iter)
+                        writer.add_scalar("Info/file_cursor_position", tr_loader.file_counter, global_iter)
+                        writer.add_scalar("Info/batch_iteration", batch_iter, global_iter)
                         print(f"epoch {epoch:<3d} - step {batch_iter:<8d} - loss: {loss.item():0.6f} - {time_per_step:0.1f} ms/batch")
                     batch_iter += 1
                     global_iter += 1
 
-            
+            # keeps the iteration count correct because iteration not actually performed after eof
+            batch_iter -= 1
+
             # validate at end of epoch
-            print(f"Validating at end of epoch {epoch}")
+            print(f"Validating at end of epoch {epoch} ({batch_iter} steps in batch, {global_iter} total steps)")
             with torch.no_grad():
                 val_loader = loaderThread('validation', PATH_TO_VAL_DATA, N_LOADER_THREADS, BUFFER_SIZE, BATCH_SIZE, condition)
                 val_loader.start()
@@ -175,7 +186,7 @@ if __name__ == "__main__":
                     if val_batches_processed > NUM_VAL_BATCHES:
                         break
 
-                    condition.wait()
+                    condition.wait_for(val_loader.finished_updating)
                     features = val_loader.input_features
                     evals = val_loader.sf_evals
                     res = val_loader.results
