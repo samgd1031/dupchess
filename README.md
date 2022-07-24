@@ -11,7 +11,7 @@ Tested up to perft 7, approx 900,000 nodes/sec for release build on single core 
 Also passes the perft tests from various positions in this [thread](http://www.talkchess.com/forum3/viewtopic.php?t=47318), which tests several edge cases.
 
 ## Evaluation
-NNUE used for positional evaluation.  As implemented in this version, it will only look ahead at the next possible moves, making it a little shortsighted.  Alpha-beta search to come in the next version.
+NNUE used for positional evaluation.  As implemented in this version, it will only look ahead at the next possible moves, making it a little shortsighted.  Alpha-beta search to come in the next version.  Currently the python code exists to train the neural network, but integration of the trained model weights and biases with the C++ chess engine is in progress.
 
 ## Interface
 Built to be UCI compliant, has played games successfully with Arena Chess GUI
