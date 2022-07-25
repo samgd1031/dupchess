@@ -57,3 +57,4 @@
 
 # intermediate training weights
 /src/training/weights/**
+**/**.bindat

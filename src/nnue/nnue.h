@@ -1,4 +1,15 @@
 #pragma once
+#include "layer.h"
+#include <fstream>
+#include <vector>
 
 
-static int pl = 0
+using namespace std;
+class NNUE
+{
+private:
+	vector<Layer> layers;
+public:
+	NNUE(string weightFile);
+
+};
