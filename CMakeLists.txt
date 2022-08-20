@@ -22,6 +22,7 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest CMakeRC)
 
+enable_testing()
 
 add_subdirectory("main")
 add_subdirectory("src")
