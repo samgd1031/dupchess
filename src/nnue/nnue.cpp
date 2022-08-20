@@ -1,25 +1,31 @@
 #pragma once
 #include "nnue.h"
 
-using namespace std;
-NNUE::NNUE(string weightFile) {
-	ifstream infile(weightFile, ios::binary);
+CMRC_DECLARE(nnue_weights);
 
-	vector<char> buf;
-	buf.resize(4);
-	
+using namespace std;
+NNUE::NNUE() {
+	cmrc::embedded_filesystem fs = cmrc::nnue_weights::get_filesystem();
+	cmrc::file wgt = fs.open("velma_v1.wgt");
+	cmrc::file::iterator iter = wgt.begin();
+
 	// total number of layers in network
 	uint32_t n_layers;
-	infile.read((char*)&n_layers, 4);
+	memcpy(&n_layers, iter, 4);
+	iter += 4;
 	layers.reserve(n_layers);
-
+	
 	// get weights and biases for each layer
 	for (int ii = 0; ii < n_layers; ii++) {
 		uint32_t l_num, w, h;
-		infile.read((char*)&l_num, 4);  // layer number
-		infile.read((char*)&w, 4);		// width (output dimension)
-		infile.read((char*)&h, 4);		// height (input dimension)
-
-		layers.push_back(Layer(w, h, &infile));
+		memcpy(&l_num, iter, 4);  // layer number
+		iter += 4;
+		memcpy(&w, iter, 4);  // width (output dimension)
+		iter += 4;
+		memcpy(&h, iter, 4);  // height (input dimension)
+		iter += 4;
+	
+		layers.push_back(Layer(w, h, &iter));
 	}
+	
 }

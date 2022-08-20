@@ -1,14 +1,13 @@
 #pragma once
 #include <vector>
-#include <algorithm>
-#include <fstream>
+#include <cmrc/cmrc.hpp>
 
 using namespace std;
 class Layer 
 {
 
 public:
-	Layer(int w, int h, ifstream* is);
+	Layer(int w, int h, cmrc::file::iterator* iter);
 	int width;
 	int height;
 	vector<vector<float>> weights;

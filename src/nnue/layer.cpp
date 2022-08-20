@@ -1,7 +1,7 @@
 #pragma once
 #include "layer.h"
 
-Layer::Layer(int w, int h, ifstream* is) {
+Layer::Layer(int w, int h, cmrc::file::iterator* iter) {
 	width = w;
 	height = h;
 
@@ -12,7 +12,8 @@ Layer::Layer(int w, int h, ifstream* is) {
 		temp.reserve(height);
 		for (int jj = 0; jj < height; jj++) {
 			float weight;
-			is->read((char*)&weight, 4);
+			memcpy(&weight, *iter, 4);
+			*iter += 4;
 
 			temp.push_back(weight);
 		}
@@ -23,7 +24,8 @@ Layer::Layer(int w, int h, ifstream* is) {
 	bias.reserve(width);
 	for (int ii = 0; ii < w; ii++) {
 		float b;
-		is->read((char*)&b, 4);
+		memcpy(&b, *iter, 4);
+		*iter += 4;
 		bias.push_back(b);
 	}
 	
