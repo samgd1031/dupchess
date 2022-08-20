@@ -16,7 +16,7 @@ NNUE::NNUE() {
 	layers.reserve(n_layers);
 	
 	// get weights and biases for each layer
-	for (int ii = 0; ii < n_layers; ii++) {
+	for (uint32_t ii = 0; ii < n_layers; ii++) {
 		uint32_t l_num, w, h;
 		memcpy(&l_num, iter, 4);  // layer number
 		iter += 4;
