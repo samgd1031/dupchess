@@ -1,41 +1,37 @@
 #include <gtest/gtest.h>
 #include "../src/chess/dupEngine.h"
 
-class DupEngineTest : public testing::Test {
-protected:
-	void SetUp() override {
-		eng_ = DupEngine();
-	}
-
-	DupEngine eng_;
-};
-
-
 // series of perft tests to check move generation
-TEST_F(DupEngineTest, perft) {
+TEST(MoveGen, perft) {
+	DupEngine eng = DupEngine();
 	// from initial position
-	ASSERT_EQ(eng_.perft(0), 1);
-	ASSERT_EQ(eng_.perft(1), 20);
-	ASSERT_EQ(eng_.perft(2), 400);
-	ASSERT_EQ(eng_.perft(3), 8902);
-	ASSERT_EQ(eng_.perft(4), 197281);
+	ASSERT_EQ(eng.perft(0), 1);
+	ASSERT_EQ(eng.perft(1), 20);
+	ASSERT_EQ(eng.perft(2), 400);
+	ASSERT_EQ(eng.perft(3), 8902);
+	ASSERT_EQ(eng.perft(4), 197281);
+	ASSERT_EQ(eng.perft(5), 4865609);
 }
 
-TEST_F(DupEngineTest, illegalEP){
-	/////// edge cases from http://www.talkchess.com/forum3/viewtopic.php?t=47318
+/////// edge cases from http://www.talkchess.com/forum3/viewtopic.php?t=47318
+TEST(MoveGen, illegalEP){
+	DupEngine eng = DupEngine();
 	// avoid illegal en passant capture:
-	eng_.gameboard.setBoardFromFEN("8/5bk1/8/2Pp4/8/1K6/8/8 w - d6 0 1");
-	EXPECT_EQ(eng_.perft(6), 824064);
-	eng_.gameboard.setBoardFromFEN("8/8/1k6/8/2pP4/8/5BK1/8 b - d3 0 1");
-	EXPECT_EQ(eng_.perft(6), 824064);
+	eng.gameboard.setBoardFromFEN("8/5bk1/8/2Pp4/8/1K6/8/8 w - d6 0 1");
+	EXPECT_EQ(eng.perft(6), 824064);
+	eng.gameboard.setBoardFromFEN("8/8/1k6/8/2pP4/8/5BK1/8 b - d3 0 1");
+	EXPECT_EQ(eng.perft(6), 824064);
 }
-/*
+
+TEST(MoveGen, EPCheck) {
+	DupEngine eng = DupEngine();
 	// en passant capture checks opponent
 	eng.gameboard.setBoardFromFEN("8/8/1k6/2b5/2pP4/8/5K2/8 b - d3 0 1");
 	EXPECT_EQ(eng.perft(6), 1440467);
 	eng.gameboard.setBoardFromFEN("8/5k2/8/2Pp4/2B5/1K6/8/8 w - d6 0 1");
 	EXPECT_EQ(eng.perft(6), 1440467);
-
+}
+/*
 	// short castling gives check:
 	eng.gameboard.setBoardFromFEN("5k2/8/8/8/8/8/8/4K2R w K - 0 1");
 	EXPECT_EQ(eng.perft(6), 661072);

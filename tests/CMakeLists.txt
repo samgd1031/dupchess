@@ -1,14 +1,14 @@
 enable_testing()
 
-add_executable(dupchess_tests
+add_executable(MoveGen
 				tests.cpp
 )
 
 target_link_libraries(
-	dupchess_tests
+	MoveGen
 	dupchess_chess
 	GTest::gtest_main
 )
 
 include(GoogleTest)
-gtest_discover_tests(dupchess_tests)
+gtest_discover_tests(MoveGen)
