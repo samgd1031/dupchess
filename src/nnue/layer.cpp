@@ -47,7 +47,7 @@ vector<float> Layer::forward(vector<float> input)
 	{
 		for (int jj = 0; jj < width; ++jj)
 		{
-			output[jj] = input[ii] * weights[jj][ii];
+			output[jj] += input[ii] * weights[jj][ii];
 		}
 	}
 

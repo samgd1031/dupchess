@@ -14,7 +14,7 @@ int main()
 	DupEngine eng;
 	NNUE nn;
 	Board b;
-	eng.gameboard.setBoardFromFEN("8/8/5Q2/2k5/4K3/8/8/8 w - - 0 1");
+	eng.gameboard.setBoardFromFEN("8/2K5/8/1P3k2/8/8/8/7r b - - 0 1");
 	nn.get_active_features(eng.gameboard);
 	nn.refresh_accumulator();
 	eng.printGameState();

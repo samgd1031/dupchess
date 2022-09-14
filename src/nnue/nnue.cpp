@@ -76,7 +76,6 @@ void NNUE::get_active_features(const Board b) {
 	active_features.clear(); // make sure active features is empty
 
 	// Get king squares first
-	unsigned long wksq, bksq;
 	_BitScanForward64(&wksq, b.state.kings & b.state.white_pcs);
 	_BitScanForward64(&bksq, b.state.kings & b.state.black_pcs);
 

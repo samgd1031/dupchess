@@ -14,7 +14,8 @@ private:
 	vector<Layer> layers;
 	vector<int> active_features;
 	vector<float> accumulator;
-
+	unsigned long wksq;  // white king square
+	unsigned long bksq;  // black king square
 	
 	/// <summary>
 	/// return the halfKP feature index for a given piece
