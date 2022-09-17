@@ -117,3 +117,20 @@ void Move::setPieceID(util::Piece newID) {
 		break;
 	}
 }
+
+
+// set move score
+void Move::setScore(int eval) {
+	score = eval;
+}
+
+// compare moves by eval score
+bool Move::operator<(const Move& m) {
+	if (score < m.score) { return 1; }
+	else { return 0; }
+}
+
+// get eval for this move
+int Move::getEvalCP() {
+	return score;
+}

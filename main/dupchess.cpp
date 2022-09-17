@@ -4,13 +4,11 @@
 #include <string>
 #include <chrono>
 
+#include "chess/io_handler.h"
 
-#include "io_handler.h"
-
-
-int main()
+using namespace std;
+int main(int argc, char* argv[])
 {
-
 	IO_handler io = IO_handler();
 	io.start();
 

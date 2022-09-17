@@ -26,8 +26,18 @@ public:
 	// change piece ID (used for queen move generation, may be a dumb thing to do i dont know)
 	void setPieceID(util::Piece newID);
 
+	// set move score (eval in centipawns)
+	void setScore(int eval);
+
+	// get eval for this move
+	int getEvalCP();
+
+	// compare moves by eval score
+	bool operator<(const Move& m);
+
 private:
 	uint32_t bits; // encoded move
+	int score{};   // holds score after nn evaluation
 
 	// bit shifts
 	// bits 0-5 = index of current piece square (0 to 63), no shift

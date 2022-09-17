@@ -22,6 +22,8 @@
 
 # visual studio shit
 **/.vs
+**/.vscode
+
 # Compiled Static libraries
 *.lai
 *.la
@@ -30,9 +32,30 @@
 
 #compile output folder
 **/out/**
+**/build/**
 
 
 # Executables
 *.exe
 *.out
 *.app
+
+# backup files
+*.bak
+
+# python stuff
+**/venv*/**
+**/*.idea
+**/__pycache__/**
+*.pyd
+
+# compiled cpp file in training data
+/src/training/prep_batch.cpp
+
+# tensorboard
+/src/training/runs/**
+
+# intermediate training weights
+/src/training/weights/**
+**/**.bindat
+*.wgt

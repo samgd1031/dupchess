@@ -193,6 +193,7 @@ void IO_handler::respond_uci(){
 /// <param name="cmd_string"></param>
 void IO_handler::respond_go(std::string cmd_string) {
 	engine.chooseMove();
+	int pov = engine.whiteToMove() ? 1 : -1;
+	std::cout << "info score cp " << pov * engine.best_move.getEvalCP() << std::endl;
 	std::cout << "bestmove " << engine.best_move.getLongAN() << std::endl;
-	std::cout << "info string " << engine.trash_talk() << std::endl;
 }
