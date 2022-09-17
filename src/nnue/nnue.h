@@ -2,9 +2,8 @@
 #include "layer.h"
 #include "../chess/board.h"
 #include <fstream>
-#include <vector>
-#include <cmrc/cmrc.hpp>
 #include <iostream>
+#include <vector>
 
 
 using namespace std;
@@ -14,9 +13,9 @@ private:
 	vector<Layer> layers;
 	vector<int> active_features;
 	vector<float> accumulator;
-	unsigned long wksq;  // white king square
-	unsigned long bksq;  // black king square
-	
+	unsigned long wksq{};  // white king square
+	unsigned long bksq{};  // black king square
+
 	/// <summary>
 	/// return the halfKP feature index for a given piece
 	/// </summary>

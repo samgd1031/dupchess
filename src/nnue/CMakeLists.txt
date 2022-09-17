@@ -5,4 +5,4 @@ file(GLOB SRC_FILES CONFIGURE_DEPENDS "*.cpp")
 
 
 add_library(dupchess_nnue STATIC ${SRC_FILES} ${HEADER_FILES})
-target_link_libraries(dupchess_nnue nnue_weights)
+target_compile_definitions(dupchess_nnue PRIVATE WEIGHTFILE="${WEIGHT_FILE}")

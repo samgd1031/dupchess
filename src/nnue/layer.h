@@ -1,13 +1,12 @@
 #pragma once
 #include <vector>
-#include <cmrc/cmrc.hpp>
 
 using namespace std;
 class Layer 
 {
 
 public:
-	Layer(int w, int h, cmrc::file::iterator* iter);
+	Layer(int w, int h, vector<vector<float>> wgt, vector<float> bs);
 	int width;	// output dimension
 	int height; // input dimension
 	vector<vector<float>> weights; // size: width x height 

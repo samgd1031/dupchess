@@ -1,34 +1,63 @@
 #pragma once
 #include "nnue.h"
 
-CMRC_DECLARE(nnue_weights);
 
-using namespace std;
 NNUE::NNUE() {
+	/*
 	cmrc::embedded_filesystem fs = cmrc::nnue_weights::get_filesystem();
 	cmrc::file wgt = fs.open("velma_v1.wgt");
 	cmrc::file::iterator iter = wgt.begin();
+	*/
+	// open weights file
+	ifstream in;
+	in.open(WEIGHTFILE, ios::binary);
+
+	if (!in.is_open()) {
+		std::cerr << "Error opening " << WEIGHTFILE
+			<< " or file does not exist." << std::endl;
+		return;
+	}	
+
 
 	// reserve active features (max 60, 30 non king pieces * 2 kings)
 	active_features.reserve(60);
 
+	// read weight file data
+	
+
 	// total number of layers in network
 	uint32_t n_layers;
-	memcpy(&n_layers, iter, 4);
-	iter += 4;
+	in.read((char*)&n_layers, 4);
+	//iter += 4;
 	layers.reserve(n_layers);
 	
 	// get weights and biases for each layer
 	for (uint32_t ii = 0; ii < n_layers; ii++) {
 		uint32_t l_num, w, h;
-		memcpy(&l_num, iter, 4);  // layer number
-		iter += 4;
-		memcpy(&w, iter, 4);  // width (output dimension)
-		iter += 4;
-		memcpy(&h, iter, 4);  // height (input dimension)
-		iter += 4;
-	
-		layers.push_back(Layer(w, h, &iter));
+		vector<vector<float>> weights;
+		vector<float> biases;
+		
+		in.read((char*)&l_num, 4);  // layer number
+		in.read((char*)&w, 4);  // width (output dimension)
+		in.read((char*)&h, 4);  // height (input dimension)
+
+		// read weights
+		weights.reserve(w);
+		for (int ii = 0; ii < w; ++ii)
+		{
+			vector<float> temp;
+			temp.resize(h);
+			in.read((char*) & temp[0], h * sizeof(float));
+			weights.push_back(temp);
+		}
+
+		// read biases
+		biases.resize(w);
+		in.read((char*)&biases[0], w * sizeof(float));
+
+		
+		layers.push_back(Layer(w, h, weights, biases));
+		
 	}
 
 	// reserve accumulator
