@@ -3,10 +3,12 @@
 #include <string>
 #include <iostream>
 #include <time.h>
+#include <algorithm>
 
 #include "utils.h"
 #include "board.h"
 #include "move.h"
+#include "../nnue/nnue.h"
 
 // class for the DupChess Engine
 // main class to handle UCI commands as well as manage the thinking about chess part
@@ -39,6 +41,9 @@ public:
 
 	//board representation
 	Board gameboard;
+
+	// neural network
+	NNUE nn;
 
 	// constructor
 	DupEngine();

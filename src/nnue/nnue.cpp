@@ -3,11 +3,6 @@
 
 
 NNUE::NNUE() {
-	/*
-	cmrc::embedded_filesystem fs = cmrc::nnue_weights::get_filesystem();
-	cmrc::file wgt = fs.open("velma_v1.wgt");
-	cmrc::file::iterator iter = wgt.begin();
-	*/
 	// open weights file
 	ifstream in;
 	in.open(WEIGHTFILE, ios::binary);
@@ -21,9 +16,6 @@ NNUE::NNUE() {
 
 	// reserve active features (max 60, 30 non king pieces * 2 kings)
 	active_features.reserve(60);
-
-	// read weight file data
-	
 
 	// total number of layers in network
 	uint32_t n_layers;
@@ -43,7 +35,7 @@ NNUE::NNUE() {
 
 		// read weights
 		weights.reserve(w);
-		for (int ii = 0; ii < w; ++ii)
+		for (uint32_t ii = 0; ii < w; ++ii)
 		{
 			vector<float> temp;
 			temp.resize(h);
@@ -146,7 +138,7 @@ void NNUE::get_active_features(const Board b) {
 /// propagate the accumulator through the remaining layers and return the evaluation
 /// </summary>
 /// <returns></returns>
-float NNUE::eval() {
+int NNUE::eval() {
 	vector<float> input = accumulator;
 
 	// propagate through hidden layers, applying clipped RELU activation
@@ -159,10 +151,10 @@ float NNUE::eval() {
 	}
 
 	// last layer, do forward propagation but do not clip
-	// this should be a vector with one element in it
-	vector<float> score = layers.back().forward(output);
+	// this should result in a vector with one element in it
+	vector<float> score = layers.back().forward(input);
 
-	return score[0];
+	return (int)score[0];
 
 }
 

@@ -623,13 +623,29 @@ inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard
 void DupEngine::chooseMove() {
 	// get list of all legal moves
 	mlist = getLegalMoves();
+	int color_fac = whiteToMove() ? 1 : -1;  // used to make eval positive to determine best possible move
+	
+	for (int ii = 0; ii<mlist.size(); ++ii)
+	{
+		makeMove(mlist[ii]);
+		nn.get_active_features(gameboard);
+		nn.refresh_accumulator();
+		mlist[ii].setScore(nn.eval());
+		unmakeMove();
+	}
 
-	// pick a random move from movelist
 	if (mlist.size() == 0) {
 		printf("%s has no moves!\n", (gameboard.state.whiteToMove) ? "White" : "Black");
 		return;
 	}
-	best_move = mlist[std::rand() % mlist.size()];
+	
+	// pick move that leads to the best eval (most positive/max for white, most negative/min for black)
+	// NNUE output always from white's perspective
+	int best_move_ind;
+	if (whiteToMove())	{ best_move_ind = std::max_element(mlist.begin(), mlist.end()) - mlist.begin(); }
+	else{ best_move_ind = std::min_element(mlist.begin(), mlist.end()) - mlist.begin(); }
+
+	best_move = mlist[best_move_ind];
 }
 
 
@@ -949,6 +965,12 @@ void DupEngine::printGameState() {
 			if (mHistory.size() > 0) {
 				std::cout << "Last move: " << mHistory.back().getLongAN();
 			}
+			break;
+		case 2:
+			// print eval
+			nn.get_active_features(gameboard);
+			nn.refresh_accumulator();
+			std::cout << "Evaluation: " << nn.eval();
 			break;
 		default:
 			break;

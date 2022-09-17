@@ -33,7 +33,7 @@ public:
 	NNUE();
 	void get_active_features(const Board b);
 	void refresh_accumulator();
-	float eval();
+	int eval();
 
 };
 
