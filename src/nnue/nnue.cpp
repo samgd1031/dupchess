@@ -137,7 +137,7 @@ void NNUE::get_active_features(const Board b) {
 /// <summary>
 /// propagate the accumulator through the remaining layers and return the evaluation
 /// </summary>
-/// <returns></returns>
+/// <returns>evaluation as an integer number of centipawns</returns>
 int NNUE::eval() {
 	vector<float> input = accumulator;
 
