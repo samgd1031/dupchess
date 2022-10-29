@@ -100,7 +100,7 @@ void NNUE::get_active_features(const Board b) {
 	_BitScanForward64(&wksq, b.state.kings & b.state.white_pcs);
 	_BitScanForward64(&bksq, b.state.kings & b.state.black_pcs);
 
-	// get number of peices
+	// get number of pieces
 	int n_pcs = std::_Popcount(b.state.white_pcs | b.state.black_pcs);
 	bitboard pcs = b.state.white_pcs | b.state.black_pcs;
 
@@ -154,7 +154,7 @@ int NNUE::eval() {
 	// this should result in a vector with one element in it
 	vector<float> score = layers.back().forward(input);
 
-	return (int)score[0];
+	return (int)score[0]; // return just the value
 
 }
 
