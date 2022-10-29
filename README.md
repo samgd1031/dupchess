@@ -7,8 +7,10 @@ Big thanks to GothamChess for the [shoutout](https://youtu.be/dITABWFb3qQ?t=10) 
 "Certified not egregious or weird"
 
 ## Move generation
-Tested up to perft 7, approx 900,000 nodes/sec for release build on single core Ryzen 5 1600.  Higher depths will likely require multithreading to solve in a reasonable amount of time.
+Manually tested up to perft 7, approx 1,900,000 nodes/sec for release build on single core Ryzen 7 7700.  Higher depths will likely require multithreading to solve in a reasonable amount of time, TBD if that's worth implementing for move generation.
 Also passes the perft tests from various positions in this [thread](http://www.talkchess.com/forum3/viewtopic.php?t=47318), which tests several edge cases.
+
+Unit tests implement up to perft 5 from starting position, as well as all of the edge cases from the above thread.
 
 ## Evaluation
 NNUE used for positional evaluation.  As implemented in this version, it will only look ahead at the next possible moves, making it a little shortsighted.  Alpha-beta (PV) search to come in the next version.
