@@ -178,7 +178,7 @@ void IO_handler::start() {
 /// respond to "uci" command from gui
 /// </summary>
 void IO_handler::respond_uci(){
-	std::cout << "id name DupChess" << std::endl;
+	std::cout << "id name " << engine.getEngineName() << " " << engine.getEngineVersion() << std::endl;
 	std::cout << "id author Sam Dupas" << std::endl;
 
 	//TODO: add options if I ever get smart enough to figure that out
