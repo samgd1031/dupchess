@@ -1,11 +1,18 @@
 #pragma once
 #include "nnue.h"
 
+NNUE::NNUE(){
+	init(WEIGHTFILE);
+}
 
-NNUE::NNUE() {
+NNUE::NNUE(string weight_path) {
+	init(weight_path);
+}
+
+void NNUE::init(string weight_path) {
 	// open weights file
 	ifstream in;
-	in.open(WEIGHTFILE, ios::binary);
+	in.open(weight_path, ios::binary);
 
 	if (!in.is_open()) {
 		std::cerr << "Error opening " << WEIGHTFILE

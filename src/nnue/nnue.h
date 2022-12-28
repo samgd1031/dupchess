@@ -29,8 +29,11 @@ private:
 	// Clipped rectified linear unit activation
 	void crelu(vector<float>& input);
 
+	void init(string weight_path);
+
 public:
 	NNUE();
+	NNUE(string weight_path);
 	void get_active_features(const Board b);
 	void refresh_accumulator();
 	int eval();
