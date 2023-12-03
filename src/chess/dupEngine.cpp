@@ -32,7 +32,7 @@ std::string DupEngine::getEngineName() {
 }
 
 std::string DupEngine::getEngineVersion() {
-	return "1.0.1";
+	return "1.0.2";
 }
 
 std::string DupEngine::getAuthorName() {
@@ -970,7 +970,7 @@ void DupEngine::printGameState() {
 			// print eval
 			nn.get_active_features(gameboard);
 			nn.refresh_accumulator();
-			std::cout << "Evaluation: " << nn.eval();
+			printf("Evaluation: %+.2f", nn.eval() / 100.0);
 			break;
 		default:
 			break;

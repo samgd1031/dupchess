@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 project("dupchess")
 
 # name of weight file for referencing elsewhere in build
-set(WEIGHT_FILE "velma_v1.wgt")
+set(WEIGHT_FILE "velma_v2.wgt")
 
 #dependencies
 include(FetchContent)
@@ -25,5 +25,3 @@ enable_testing()
 add_subdirectory("main")
 add_subdirectory("src")
 add_subdirectory("tests")
-
-
