@@ -11,6 +11,7 @@ DupEngine::DupEngine(void) {
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
 	best_move = Move();
 	srand((int)time(NULL));  // set random generator seed
+	nn.refresh_accumulator();
 }
 ///////////////////////////////////////////
 
@@ -623,8 +624,8 @@ inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard
 void DupEngine::chooseMove() {
 	// get list of all legal moves
 	mlist = getLegalMoves();
-	int color_fac = whiteToMove() ? 1 : -1;  // used to make eval positive to determine best possible move
 	
+	// score each move with NNUE (remember that network output is centipawn eval from white's perspective)
 	for (int ii = 0; ii<mlist.size(); ++ii)
 	{
 		makeMove(mlist[ii]);

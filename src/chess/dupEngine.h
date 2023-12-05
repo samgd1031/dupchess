@@ -28,10 +28,12 @@ public:
 
 	// move generation
 	std::vector<Move> getLegalMoves();
-	void chooseMove();
 	void makeMove(Move moveToMake);
 	void makeMoveFromString(std::string LAN_move);
 	void unmakeMove();
+
+	// tree search
+	void chooseMove();
 
 	// talk smack to the haters
 	std::string trash_talk();
@@ -57,9 +59,7 @@ public:
 	std::vector<Board> boardHistory;
 
 private:
-	std::vector<Move> mlist;
-
-	
+	std::vector<Move> mlist;	
 
 	// move generation
 	inline void findPawnMoves(std::vector<Move>& mlist, int color, bitboard* color_mask);
@@ -77,5 +77,6 @@ private:
 	util::Piece getPieceAtIndex(int sq_index); // return the type of piece at the given square
 	void reset_game();
 
-
+	// tree search
+	int pv_search();
 };
