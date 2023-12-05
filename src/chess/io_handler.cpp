@@ -142,6 +142,13 @@ void IO_handler::process_io() {
 		else if(cmd_string.compare("uci") == 0) {
 			respond_uci();
 		}
+		// ucinewgame
+		else if (cmd_string.compare("ucinewgame") == 0)
+		{
+			engine.gameboard.setBoardFromFEN(engine.START_FEN);
+			engine.mHistory.clear();
+			engine.boardHistory.clear();
+		}
 		// talk smack
 		else if (cmd_string.compare("smack") == 0) {
 			std::cout << engine.trash_talk() << std::endl;
