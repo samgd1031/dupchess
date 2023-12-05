@@ -623,9 +623,9 @@ inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard
 /// </summary>
 void DupEngine::chooseMove() {
 	// get list of all legal moves
-	std::vector<Move> mlist = getLegalMoves();
+	mlist = getLegalMoves();
 	
-	// score each move with quiescence search
+	// score each move with NNUE (remember that network output is centipawn eval from white's perspective)
 	for (int ii = 0; ii<mlist.size(); ++ii)
 	{
 		makeMove(mlist[ii]);
