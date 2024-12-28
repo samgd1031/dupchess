@@ -14,7 +14,7 @@
 // main class to handle UCI commands as well as manage the thinking about chess part
 class DupEngine {
 public:
-	static std::string DupEngine::START_FEN;
+	static std::string START_FEN;
 
 	// informational functions
 	std::string getEngineName();
@@ -74,7 +74,7 @@ private:
 	// utility
 	int is_attacked(int square_index, int color, bitboard* color_mask); // return the number of pieces attacking a square
 	bool is_in_check(int color); // figure out if the king of the given color is in check
-	util::Piece DupEngine::getPieceAtIndex(int sq_index); // return the type of piece at the given square
+	util::Piece getPieceAtIndex(int sq_index); // return the type of piece at the given square
 	void reset_game();
 
 

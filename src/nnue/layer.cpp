@@ -1,4 +1,3 @@
-#pragma once
 #include "layer.h"
 
 Layer::Layer(int w, int h, vector<vector<float>> wgt, vector<float> bs) {

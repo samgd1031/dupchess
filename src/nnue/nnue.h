@@ -1,6 +1,7 @@
 #pragma once
 #include "layer.h"
 #include "../chess/board.h"
+#include "../chess/utils.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
