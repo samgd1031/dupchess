@@ -1,4 +1,3 @@
-#pragma once
 #include "nnue.h"
 
 NNUE::NNUE(){
@@ -104,17 +103,17 @@ void NNUE::get_active_features(const Board b) {
 	active_features.clear(); // make sure active features is empty
 
 	// Get king squares first
-	_BitScanForward64(&wksq, b.state.kings & b.state.white_pcs);
-	_BitScanForward64(&bksq, b.state.kings & b.state.black_pcs);
+	bitscanfwd_u64(&wksq, b.state.kings & b.state.white_pcs);
+	bitscanfwd_u64(&bksq, b.state.kings & b.state.black_pcs);
 
 	// get number of pieces
-	int n_pcs = std::_Popcount(b.state.white_pcs | b.state.black_pcs);
+	int n_pcs = popcount64(b.state.white_pcs | b.state.black_pcs);
 	bitboard pcs = b.state.white_pcs | b.state.black_pcs;
 
 	for (int ii = 0; ii < n_pcs; ++ii)
 	{
 		unsigned long psq; // piece square
-		_BitScanForward64(&psq, pcs);
+		bitscanfwd_u64(&psq, pcs);
 
 		// piece color
 		int clr;

@@ -84,40 +84,40 @@ std::vector<Move> DupEngine::getLegalMoves() {
 
 	// rooks
 	bitboard rooks_to_move = gameboard.state.rooks & *color_mask;
-	int n_rooks = std::_Popcount(rooks_to_move);
+	int n_rooks = popcount64(rooks_to_move);
 	for (int ii = 0; ii < n_rooks; ii++) {
 		unsigned long rook_index;
-		_BitScanForward64(&rook_index, rooks_to_move);
+		bitscanfwd_u64(&rook_index, rooks_to_move);
 		DupEngine::findRookMoves(movelist, rook_index, color, color_mask);
 		rooks_to_move &= ~(1ULL << rook_index);
 	}
 
 	// bishops
 	bitboard bishop_to_move = gameboard.state.bishops & *color_mask;
-	int n_bishop = std::_Popcount(bishop_to_move);
+	int n_bishop = popcount64(bishop_to_move);
 	for (int ii = 0; ii < n_bishop; ii++) {
 		unsigned long bishop_index;
-		_BitScanForward64(&bishop_index, bishop_to_move);
+		bitscanfwd_u64(&bishop_index, bishop_to_move);
 		DupEngine::findBishopMoves(movelist, bishop_index, color, color_mask);
 		bishop_to_move &= ~(1ULL << bishop_index);
 	}
 
 	//knights
 	bitboard knight_to_move = gameboard.state.knights & *color_mask;
-	int n_knight = std::_Popcount(knight_to_move);
+	int n_knight = popcount64(knight_to_move);
 	for (int ii = 0; ii < n_knight; ii++) {
 		unsigned long knight_index;
-		_BitScanForward64(&knight_index, knight_to_move);
+		bitscanfwd_u64(&knight_index, knight_to_move);
 		DupEngine::findKnightMoves(movelist, knight_index, color, color_mask);
 		knight_to_move &= ~(1ULL << knight_index);
 	}
 	
 	// queens
 	bitboard queens_to_move = gameboard.state.queens & *color_mask;
-	int n_queen = std::_Popcount(queens_to_move);
+	int n_queen = popcount64(queens_to_move);
 	for (int ii = 0; ii < n_queen; ii++) {
 		unsigned long queen_index;
-		_BitScanForward64(&queen_index, queens_to_move);
+		bitscanfwd_u64(&queen_index, queens_to_move);
 		DupEngine::findQueenMoves(movelist, queen_index, color, color_mask);
 		queens_to_move &= ~(1ULL << queen_index);
 	}
@@ -125,7 +125,7 @@ std::vector<Move> DupEngine::getLegalMoves() {
 	// king
 	bitboard king_to_move = gameboard.state.kings & *color_mask;
 	unsigned long king_index = 0;
-	_BitScanForward64(&king_index, king_to_move);
+	bitscanfwd_u64(&king_index, king_to_move);
 	DupEngine::findKingMoves(movelist, king_index, color, color_mask);
 
 	//Castling
@@ -140,7 +140,7 @@ std::vector<Move> DupEngine::getLegalMoves() {
 		
 		// see if king is attacked (would put the king in check)
 		unsigned long test_king_index;
-		_BitScanForward64(&test_king_index, gameboard.state.kings & *color_mask);
+		bitscanfwd_u64(&test_king_index, gameboard.state.kings & *color_mask);
 		bool is_king_attacked = is_attacked(test_king_index, color, color_mask);
 		// if king is attacked, remove this move from valid move list
 		if (is_king_attacked) { movelist.erase(movelist.begin() + ii); ii--; }
@@ -184,10 +184,10 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 
 
 	// encode single moves and add to move list
-	int movecount = std::_Popcount(single_tgts);
+	int movecount = popcount64(single_tgts);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, single_tgts);
+		bitscanfwd_u64(&target_ind, single_tgts);
 		// if pawn makes it to the end add all possible promotion moves
 		if(((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))){
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -201,19 +201,19 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 	}
 
 	// encode double moves and add to move list
-	movecount = std::_Popcount(dbl_tgts);
+	movecount = popcount64(dbl_tgts);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, dbl_tgts);
+		bitscanfwd_u64(&target_ind, dbl_tgts);
 		mlist.push_back(Move((uint32_t)(target_ind - 16 * color), (uint32_t)target_ind, util::Piece::PAWN, false, false, true, false, 0));
 		dbl_tgts ^= 1ULL << target_ind;
 	}
 
 	// encode captures and add to move list
-	movecount = std::_Popcount(east_atk);
+	movecount = popcount64(east_atk);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, east_atk);
+		bitscanfwd_u64(&target_ind, east_atk);
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -226,10 +226,10 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		east_atk ^= 1ULL << target_ind;
 	}
 	
-	movecount = std::_Popcount(west_atk);
+	movecount = popcount64(west_atk);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, west_atk);
+		bitscanfwd_u64(&target_ind, west_atk);
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -250,18 +250,18 @@ inline void DupEngine::findPawnMoves(std::vector<Move>& mlist, int color ,bitboa
 		bitboard west_atk = util::genShift((gameboard.state.pawns & *color_mask) & west_mask, color * 7) & epTarget;
 
 		// encode moves
-		movecount = std::_Popcount(east_atk);
+		movecount = popcount64(east_atk);
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
-			_BitScanForward64(&target_ind, east_atk);
+			bitscanfwd_u64(&target_ind, east_atk);
 			mlist.push_back(Move((uint32_t)(target_ind - 9 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, false, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
 
-		movecount = std::_Popcount(west_atk);
+		movecount = popcount64(west_atk);
 		for (int ii = 0; ii < movecount; ii++) {
 			unsigned long target_ind;
-			_BitScanForward64(&target_ind, west_atk);
+			bitscanfwd_u64(&target_ind, west_atk);
 			mlist.push_back(Move((uint32_t)(target_ind - 7 * color), (uint32_t)target_ind, util::Piece::PAWN, true, false, true, false, 0));
 			east_atk ^= 1ULL << target_ind;
 		}
@@ -289,10 +289,10 @@ inline void DupEngine::findPawnAttacks(std::vector<Move>& mlist, int sq_index, i
 	bitboard west_atk = util::genShift((1ULL << sq_index) & west_mask, color * 7) & (~empty & ~*color_mask);
 
 	// encode captures and add to move list
-	int movecount = std::_Popcount(east_atk);
+	int movecount = popcount64(east_atk);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, east_atk);
+		bitscanfwd_u64(&target_ind, east_atk);
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -305,10 +305,10 @@ inline void DupEngine::findPawnAttacks(std::vector<Move>& mlist, int sq_index, i
 		east_atk ^= 1ULL << target_ind;
 	}
 
-	movecount = std::_Popcount(west_atk);
+	movecount = popcount64(west_atk);
 	for (int ii = 0; ii < movecount; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, west_atk);
+		bitscanfwd_u64(&target_ind, west_atk);
 		// if pawn makes it to the end add all possible promotion moves
 		if (((color == 1) && (target_ind / 8 == 7)) || ((color == -1) && (target_ind / 8 == 0))) {
 			for (uint8_t jj = 1; jj < 5; jj++) {
@@ -349,19 +349,19 @@ inline void DupEngine::findRookMoves(std::vector<Move>& mlist, int sqIndex, int 
 	bitboard rook_atks = ((vert | horz) & occ) & ~*color_mask;
 
 	// encode moves
-	int n_moves = std::_Popcount(rook_moves);
+	int n_moves = popcount64(rook_moves);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, rook_moves);
+		bitscanfwd_u64(&target_ind, rook_moves);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, false, false, false, false, 0));
 		rook_moves ^= 1ULL << target_ind;
 	}
 
 	// encode captures
-	n_moves = std::_Popcount(rook_atks);
+	n_moves = popcount64(rook_atks);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, rook_atks);
+		bitscanfwd_u64(&target_ind, rook_atks);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::ROOK, true, false, false, false, 0));
 		rook_atks ^= 1ULL << target_ind;
 	}
@@ -393,19 +393,19 @@ inline void DupEngine::findBishopMoves(std::vector<Move>& mlist, int sqIndex, in
 	bitboard bishop_atks = (diag | anti_diag) & (occ & ~*color_mask);
 
 	// encode moves
-	int n_moves = std::_Popcount(bishop_moves);
+	int n_moves = popcount64(bishop_moves);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, bishop_moves);
+		bitscanfwd_u64(&target_ind, bishop_moves);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, false, false, false, false, 0));
 		bishop_moves ^= 1ULL << target_ind;
 	}
 
 	// encode captures
-	n_moves = std::_Popcount(bishop_atks);
+	n_moves = popcount64(bishop_atks);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, bishop_atks);
+		bitscanfwd_u64(&target_ind, bishop_atks);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::BISHOP, true, false, false, false, 0));
 		bishop_atks ^= 1ULL << target_ind;
 	}
@@ -448,7 +448,7 @@ inline void DupEngine::findKingMoves(std::vector<Move>& mlist, int sqIndex, int 
 
 	// add squares around enemy king to "friends" so that it will not try to enter it
 	unsigned long enemy_king_ind = 0;
-	_BitScanForward64(&enemy_king_ind, (gameboard.state.kings & enemies));
+	bitscanfwd_u64(&enemy_king_ind, (gameboard.state.kings & enemies));
 	bitboard enemy_king = util::genShift(util::kingAttack, (enemy_king_ind - util::kingAttackIndex));
 	if (enemy_king_ind % 8 == 0) { // A file
 		enemy_king &= ~(util::fileMasks[7]); // mask off H file
@@ -475,19 +475,19 @@ inline void DupEngine::findKingMoves(std::vector<Move>& mlist, int sqIndex, int 
 	bitboard king_moves = king_targets & ~(king_captures);
 
 	// encode moves
-	int n_moves = std::_Popcount(king_moves);
+	int n_moves = popcount64(king_moves);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, king_moves);
+		bitscanfwd_u64(&target_ind, king_moves);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, false, false, false, false, 0));
 		king_moves ^= 1ULL << target_ind;
 	}
 
 	// encode captures
-	int n_caps = std::_Popcount(king_captures);
+	int n_caps = popcount64(king_captures);
 	for (int ii = 0; ii < n_caps; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, king_captures);
+		bitscanfwd_u64(&target_ind, king_captures);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KING, true, false, false, false, 0));
 		king_captures ^= 1ULL << target_ind;
 	}
@@ -522,19 +522,19 @@ inline void DupEngine::findKnightMoves(std::vector<Move>& mlist, int sqIndex, in
 	bitboard knight_moves = knight_targets & ~(knight_captures);
 
 	// encode moves
-	int n_moves = std::_Popcount(knight_moves);
+	int n_moves = popcount64(knight_moves);
 	for (int ii = 0; ii < n_moves; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, knight_moves);
+		bitscanfwd_u64(&target_ind, knight_moves);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, false, false, false, false, 0));
 		knight_moves ^= 1ULL << target_ind;
 	}
 
 	// encode captures
-	int n_caps = std::_Popcount(knight_captures);
+	int n_caps = popcount64(knight_captures);
 	for (int ii = 0; ii < n_caps; ii++) {
 		unsigned long target_ind;
-		_BitScanForward64(&target_ind, knight_captures);
+		bitscanfwd_u64(&target_ind, knight_captures);
 		mlist.push_back(Move((uint32_t)sqIndex, (uint32_t)target_ind, util::Piece::KNIGHT, true, false, false, false, 0));
 		knight_captures ^= 1ULL << target_ind;
 	}
@@ -1096,7 +1096,7 @@ uint64_t DupEngine::perft(int depth) {
 bool DupEngine::is_in_check(int color) {
 	bitboard* color_mask = (color == 1) ? &gameboard.state.white_pcs : &gameboard.state.black_pcs;
 	unsigned long king_index;
-	_BitScanForward64(&king_index,(gameboard.state.kings & *color_mask));
+	bitscanfwd_u64(&king_index,(gameboard.state.kings & *color_mask));
 
 	return is_attacked((int)king_index, color, color_mask);
 }

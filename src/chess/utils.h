@@ -6,6 +6,24 @@
 #include <ctype.h>
 #include <bitset>
 
+// windows/linux intrinsic handling
+// I hope this is the only place I have to deal with conditional preprocessing
+#ifdef _WIN64
+#define popcount64(n) std::_Popcount(n)
+#define bitscanfwd_u64(ptr, n) _BitScanForward64(ptr, n)
+#define byteswap_u64(n) _byteswap_uint64(n)
+
+#elif __linux__  // use GCC intrinsics
+#include <bits/stdc++.h>
+#define popcount64(n) __builtin_popcountll(n)
+#define bitscanfwd_u64(ptr, n) *ptr = __builtin_ctzll(n)
+#define byteswap_u64(n) __builtin_bswap64(n)
+
+#else
+#error "Must compile for 64 bit windows or linux"
+#endif
+
+
 typedef uint64_t bitboard;
 
 namespace util {

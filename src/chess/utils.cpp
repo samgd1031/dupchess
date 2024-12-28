@@ -64,11 +64,11 @@ bitboard util::hyp_quint(bitboard occ, bitboard mask, int sqInd) {
 	bitboard o, r, o_rev, r_rev;
 	o = occ & mask;
 	r = 1ULL << sqInd;
-	o_rev = _byteswap_uint64(o);
-	r_rev = _byteswap_uint64(r);
+	o_rev = byteswap_u64(o);
+	r_rev = byteswap_u64(r);
 
 
-	return ((o - (2 * r)) ^ _byteswap_uint64(o_rev - (2 * r_rev))) & mask;
+	return ((o - (2 * r)) ^ byteswap_u64(o_rev - (2 * r_rev))) & mask;
 }
 
 // get valid rook moves/attacks along a rank (horizontally)
