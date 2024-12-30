@@ -5,7 +5,7 @@
 DupEngine::DupEngine(void) {
 
 	gameboard = Board();
-	mlist.reserve(200);
+	//mlist.reserve(200);
 	mHistory.reserve(80);
 	boardHistory.reserve(40);
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
@@ -20,7 +20,7 @@ DupEngine::DupEngine(void) {
 /// </summary>
 void DupEngine::reset_game() {
 	gameboard = Board();
-	mlist.clear();
+	//mlist.clear();
 	mHistory.clear();
 	boardHistory.clear();
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
@@ -623,15 +623,14 @@ inline void DupEngine::findCastles(std::vector<Move>& mlist, int color, bitboard
 /// </summary>
 void DupEngine::chooseMove() {
 	// get list of all legal moves
-	mlist = getLegalMoves();
+	std::vector<Move> mlist = getLegalMoves();
 	
-	// score each move with NNUE (remember that network output is centipawn eval from white's perspective)
+	// score each move with quiescence search
 	for (int ii = 0; ii<mlist.size(); ++ii)
 	{
 		makeMove(mlist[ii]);
-		nn.get_active_features(gameboard);
-		nn.refresh_accumulator();
-		mlist[ii].setScore(nn.eval());
+		int score = quiescence(INT_MIN, INT_MAX);
+		mlist[ii].setScore(score);
 		unmakeMove();
 	}
 
@@ -664,7 +663,7 @@ void DupEngine::makeMove(Move moveToMake) {
 	int fromSq = moveToMake.getFromSquare();
 	int toSq = moveToMake.getToSquare();
 	mHistory.push_back(moveToMake);
-
+	
 	// handle castles differently since two pieces move
 	if (moveToMake.isCastle()) {
 		bitboard& friends = (color == 1) ? gameboard.state.white_pcs : gameboard.state.black_pcs;
@@ -787,6 +786,11 @@ void DupEngine::makeMove(Move moveToMake) {
 			gameboard.state.rooks &= ~(1ULL << indToClear);
 			gameboard.state.queens &= ~(1ULL << indToClear);
 
+
+			// be super duper lazy and update the NNUE by refreshing the whole thing every move
+			// TODO: make this faster with incremental update for non-king moves
+			nn.get_active_features(gameboard);
+			nn.refresh_accumulator();
 			
 
 
@@ -888,6 +892,11 @@ void DupEngine::unmakeMove() {
 	gameboard.state = boardHistory[boardHistory.size()-1].state;
 	boardHistory.pop_back();
 	mHistory.pop_back();
+
+	// be super duper lazy and update the NNUE by refreshing the whole thing every unmove
+	// TODO: make this faster with incremental update for non-king moves
+	nn.get_active_features(gameboard);
+	nn.refresh_accumulator();
 }
 
 /// <summary>
@@ -1112,4 +1121,46 @@ void DupEngine::makeMoveFromString(std::string LAN_move) {
 
 	// error, couldnt find move because string was wrong or illegal move
 	if (!made_move) { std::cout << "Invalid move" << std::endl; }
+}
+
+
+/// <summary>
+/// Quiescence search to perform at a leaf node.
+/// </summary>
+/// <param name="alpha"></param>
+/// <param name="beta"></param>
+/// <returns></returns>
+int DupEngine::quiescence(int alpha, int beta)
+{
+	int stand_pat = nn.eval();
+	stand_pat = gameboard.state.whiteToMove == true ? stand_pat : -stand_pat;
+	if (stand_pat >= beta) // beta cutoff, this move is bad for opponent
+	{
+		return beta;
+	}
+	if (alpha <= stand_pat) // this move is better for us, update alpha
+	{
+		alpha = stand_pat;
+	}
+
+	std::vector<Move> mlist = getLegalMoves();
+	for (Move m : mlist)
+	{
+		if (m.isCapture()) // only look at captures
+		{
+			makeMove(m);
+			int score = -quiescence(-beta, alpha);
+			unmakeMove();
+
+			if (score >= beta)
+			{
+				return beta;
+			}
+			if (score > alpha)
+			{
+				alpha = score;
+			}
+		}
+	}
+	return alpha;
 }
