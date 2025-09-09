@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 project("dupchess")
 
 # name of weight file for referencing elsewhere in build
-set(WEIGHT_FILE "velma_v2.wgt")
+set(WEIGHT_FILE "son_of_dupchess.wgt")
 
 #dependencies
 include(FetchContent)

@@ -15,7 +15,7 @@ void NNUE::init(string weight_path) {
 
 	if (!in.is_open()) {
 		std::cerr << "Error opening " << WEIGHTFILE
-			<< " or file does not exist." << std::endl;
+			<< " or file does not exist.  cwd is " << std::filesystem::current_path() << std::endl;
 		return;
 	}	
 
@@ -146,8 +146,8 @@ void NNUE::get_active_features(const Board b) {
 /// <returns>evaluation as an integer number of centipawns</returns>
 int NNUE::eval() {
 	vector<float> input = accumulator;
-
-	// propagate through hidden layers, applying clipped RELU activation
+	crelu(input); // accumulator = model has passed through input layer
+	// propagate through hidden layers, applying clipped RELU activation after each one
 	vector<float> output;
 	for (int ii = 1; ii < layers.size()-1; ++ii)
 	{
@@ -158,9 +158,10 @@ int NNUE::eval() {
 
 	// last layer, do forward propagation but do not clip
 	// this should result in a vector with one element in it
-	vector<float> score = layers.back().forward(input);
+	vector<float> score = layers.back().forward(input); 
+	float cp_eval = score[0] * 3000;  // I scaled by 3000 while training network
 
-	return (int)score[0]; // return just the value
+	return (int)cp_eval; // return as an integer
 
 }
 
