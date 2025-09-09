@@ -11,7 +11,6 @@ DupEngine::DupEngine(void) {
 	gameboard.setBoardFromFEN(DupEngine::START_FEN);
 	best_move = Move();
 	srand((int)time(NULL));  // set random generator seed
-	nn.refresh_accumulator();
 }
 ///////////////////////////////////////////
 
@@ -629,8 +628,10 @@ void DupEngine::chooseMove() {
 	for (int ii = 0; ii<mlist.size(); ++ii)
 	{
 		makeMove(mlist[ii]);
-		int score = quiescence(INT_MIN, INT_MAX);
-		mlist[ii].setScore(score);
+		nn.get_active_features(gameboard);
+		nn.refresh_accumulator();
+		//int score = quiescence(INT_MIN, INT_MAX);
+		mlist[ii].setScore(nn.eval());
 		unmakeMove();
 	}
 
@@ -785,15 +786,6 @@ void DupEngine::makeMove(Move moveToMake) {
 			gameboard.state.knights &= ~(1ULL << indToClear);
 			gameboard.state.rooks &= ~(1ULL << indToClear);
 			gameboard.state.queens &= ~(1ULL << indToClear);
-
-
-			// be super duper lazy and update the NNUE by refreshing the whole thing every move
-			// TODO: make this faster with incremental update for non-king moves
-			nn.get_active_features(gameboard);
-			nn.refresh_accumulator();
-			
-
-
 		}
 
 		// set bit for piece type/color on to square
@@ -1149,7 +1141,7 @@ int DupEngine::quiescence(int alpha, int beta)
 		if (m.isCapture()) // only look at captures
 		{
 			makeMove(m);
-			int score = -quiescence(-beta, alpha);
+			int score = -quiescence(-beta, -alpha);
 			unmakeMove();
 
 			if (score >= beta)

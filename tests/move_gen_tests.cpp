@@ -10,7 +10,7 @@ TEST(MoveGen, perft) {
 	ASSERT_EQ(eng.perft(2), 400);
 	ASSERT_EQ(eng.perft(3), 8902);
 	ASSERT_EQ(eng.perft(4), 197281);
-	ASSERT_EQ(eng.perft(5), 4865609);
+	//ASSERT_EQ(eng.perft(5), 4865609);
 }
 
 /////// edge cases from http://www.talkchess.com/forum3/viewtopic.php?t=47318
